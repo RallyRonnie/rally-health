@@ -107,6 +107,14 @@ Ext.define('TSRenderers', {
         
         return "<div style='text-align:center'>" + percent + "%</div>";
     },
+    churnTaskHealth: function(value,metaData) {
+        if ( value < 0 ) {
+            return "<div style='text-align:center'>No Data</div>";
+        }
+        var percent = parseInt( 100 * value, 10 );
+        
+        return "<div style='text-align:center'>" + percent + "%</div>";
+    },
     churnDirection: function(value,metaData) {
         var display_value = " ";
         if ( value === -2 ) {

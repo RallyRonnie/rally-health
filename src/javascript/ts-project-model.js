@@ -87,7 +87,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
      */
     setIterationCumulativeFlowData: function(icfd){
         var me = this;
-        this.daily_totals = {};
+        this.daily_plan_estimate_totals = {};
+        this.daily_task_estimate_totals = {};
+        
         if ( this.get('child_count')  > 0 ) {
             this.set('health_ratio_in_progress',-1);
         } else {
@@ -97,17 +99,24 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                 if ( !card_date || ( card_date.getDay() > 0 && card_date.getDay() < 6 )) {
                     // eliminate outside the sprint dates if we have them
                     if ( me._isInsideSprint(card_date) ) {
-                        var card_estimate = cf.get('CardEstimateTotal');
+                        var card_plan_estimate = cf.get('CardEstimateTotal');
                         var card_state = cf.get('CardState');
+                        var card_task_estimate = cf.get('TaskEstimateTotal');
                         
-                        if ( !me.daily_totals.All ) { me.daily_totals.All = {}; }
-                        if ( !me.daily_totals[card_state]){ me.daily_totals[card_state] = {} }
+                        if ( !me.daily_plan_estimate_totals.All ) { me.daily_plan_estimate_totals.All = {}; }
+                        if ( !me.daily_plan_estimate_totals[card_state]){ me.daily_plan_estimate_totals[card_state] = {} }
+                        if ( !me.daily_task_estimate_totals.All ) { me.daily_task_estimate_totals.All = {}; }
+                        if ( !me.daily_task_estimate_totals[card_state]){ me.daily_task_estimate_totals[card_state] = {} }
+                                          
+                        if ( !me.daily_plan_estimate_totals.All[card_date] ) { me.daily_plan_estimate_totals.All[card_date] = 0; }
+                        if ( !me.daily_plan_estimate_totals[card_state][card_date] ) { me.daily_plan_estimate_totals[card_state][card_date] = 0; }
+                        if ( !me.daily_task_estimate_totals.All[card_date] ) { me.daily_task_estimate_totals.All[card_date] = 0; }
+                        if ( !me.daily_task_estimate_totals[card_state][card_date] ) { me.daily_task_estimate_totals[card_state][card_date] = 0; }
                         
-                        if ( !me.daily_totals.All[card_date] ) { me.daily_totals.All[card_date] = 0; }
-                        if ( !me.daily_totals[card_state][card_date] ) { me.daily_totals[card_state][card_date] = 0; }
-            
-                        me.daily_totals.All[card_date] += card_estimate;
-                        me.daily_totals[card_state][card_date] += card_estimate;
+                        me.daily_plan_estimate_totals.All[card_date] += card_plan_estimate;
+                        me.daily_plan_estimate_totals[card_state][card_date] += card_plan_estimate;
+                        me.daily_task_estimate_totals.All[card_date] += card_task_estimate;
+                        me.daily_task_estimate_totals[card_state][card_date] += card_task_estimate;
                     }
                 }
             });
@@ -117,20 +126,61 @@ Ext.define('Rally.technicalservices.ProjectModel',{
             this._setAcceptanceRatio();
             this._setIncompletionRatio();
             this._setChurn();
+            this._setTaskChurn();
         }
     },
     _setChurn: function(){
         var me = this;
-        var all_hash = this.getDailyTotalByState();
+        var all_hash = this.getDailyPlanEstimateTotalByState();
         if ( all_hash ) {
-            var daily_totals = [];
+            var daily_plan_estimate_totals = [];
             for ( var card_date in all_hash ) {
-                daily_totals.push(all_hash[card_date]);
+                daily_plan_estimate_totals.push(all_hash[card_date]);
             }
-            var standard_deviation = this._getStandardDeviation(daily_totals);
-            var deviation_ratio = Ext.util.Format.number(standard_deviation/Ext.Array.mean(daily_totals),"0.00");
+            var standard_deviation = this._getStandardDeviation(daily_plan_estimate_totals);
+            var deviation_ratio = Ext.util.Format.number(standard_deviation/Ext.Array.mean(daily_plan_estimate_totals),"0.00");
             this.set('health_churn',deviation_ratio);
-            this.set('health_churn_direction',me._getChurnDirection(daily_totals));
+            this.set('health_churn_direction',me._getChurnDirection(daily_plan_estimate_totals));
+        }
+    },
+    // Adjusts for Rally "zero'ing" the card creation time for cumulative flow cards
+    // Example:
+    // Actual card creation time: 2013-08-11T23:59:59
+    // WSAPI-Reported card creation time: 2013-08-11T00:00:00
+    // Adjusted card creation time: 2013-08-11T23:59:59
+    _adjustCardTime: function(card_date) {
+        if ( typeof(card_date.getTime) != "function") {
+            card_date = new Date(card_date);
+        }
+        var adjusted_date = Rally.util.DateTime.add(card_date, "hour", 23);
+        adjusted_date = Rally.util.DateTime.add(adjusted_date, "minute", 59);
+        adjusted_date = Rally.util.DateTime.add(adjusted_date, "second", 59);
+        return adjusted_date;
+    },
+    
+    _setTaskChurn: function(){
+        var me = this;
+        var all_hash = this.getDailyTaskEstimateTotalByState();
+        var iteration_end = this.get('iteration_end_date');
+        
+        if ( all_hash ) {
+            var previous_value = null;
+            var last_day_value = null;
+            Ext.Array.each( Ext.Object.getKeys(all_hash), function(card_date) {
+                card_date_string = Rally.util.DateTime.toIsoString(me._adjustCardTime(card_date));
+                iteration_date_string = Rally.util.DateTime.toIsoString(iteration_end);
+                
+                if ( card_date_string == iteration_date_string )  {
+                    last_day_value = all_hash[card_date];
+                } else {
+                    previous_value = all_hash[card_date];
+                }
+            });
+
+            if ( last_day_value && previous_value && previous_value > 0 ) {
+                var task_churn = Ext.util.Format.number(Math.abs(( previous_value - last_day_value )/previous_value),"0.00");
+                this.set('health_churn_task', task_churn );
+            }
         }
     },
     /**
@@ -141,8 +191,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
      * The inner value is the sum of estimates for that day
      */
     _setAverageInProgress:function(){
-        var all_hash = this.getDailyTotalByState();
-        var ip_hash = this.getDailyTotalByState("In-Progress");
+        var all_hash = this.getDailyPlanEstimateTotalByState();
+        var ip_hash = this.getDailyPlanEstimateTotalByState("In-Progress");
 
         if (!all_hash || !ip_hash) { 
             this.set('health_ratio_in_progress',0); 
@@ -166,8 +216,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
      * The inner value is the sum of estimates for that day
      */
     _setHalfAcceptanceRatio:function(){
-        var all_hash = this.getDailyTotalByState();
-        var accepted_hash = this.getDailyTotalByState("Accepted");
+        var all_hash = this.getDailyPlanEstimateTotalByState();
+        var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
 
         if (!all_hash || !accepted_hash) { 
             this.set('health_half_accepted_ratio',0); 
@@ -206,9 +256,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
      * The inner value is the sum of estimates for that day
      */
     _setIncompletionRatio:function(){
-        var all_hash = this.getDailyTotalByState();
-        var accepted_hash = this.getDailyTotalByState("Accepted");
-        var completion_hash = this.getDailyTotalByState("Completed");
+        var all_hash = this.getDailyPlanEstimateTotalByState();
+        var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
+        var completion_hash = this.getDailyPlanEstimateTotalByState("Completed");
         
         if (!all_hash) { 
             this.set('health_end_incompletion_ratio',0); 
@@ -239,8 +289,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
      * The inner value is the sum of estimates for that day
      */
     _setAcceptanceRatio:function(){
-        var all_hash = this.getDailyTotalByState();
-        var accepted_hash = this.getDailyTotalByState("Accepted");
+        var all_hash = this.getDailyPlanEstimateTotalByState();
+        var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
         
         if (!all_hash) { 
             this.set('health_end_acceptance_ratio',0); 
@@ -262,13 +312,22 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         }
     },
     /*
-     * Given a state, what are the total values in that state for each date?
+     * Given a state, what are the total task estimate values in that state for each date?
      * 
      * return full total when no state provided
      */
-    getDailyTotalByState: function(state) {
+    getDailyTaskEstimateTotalByState: function(state,type) {
         if ( !state ) { state = "All"; }
-        return this.daily_totals[state];
+        return this.daily_task_estimate_totals[state];
+    },
+    /*
+     * Given a state, what are the total plan estimate values in that state for each date?
+     * 
+     * return full total when no state provided
+     */
+    getDailyPlanEstimateTotalByState: function(state,type) {
+        if ( !state ) { state = "All"; }
+        return this.daily_plan_estimate_totals[state];
     },
     /**
      * Given an array of artifacts (stories and defects), calculate some health metrics
@@ -357,6 +416,6 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         }
         this.set('health_churn',-2);
         this.set('health_churn_direction',-2);
-        this.set('health_churn_tasks',-2);
+        this.set('health_churn_task',-2);
     }
 });

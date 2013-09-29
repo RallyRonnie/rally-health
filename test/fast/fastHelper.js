@@ -6,7 +6,7 @@ var useObjectID = function(value,record) {
 };
 
 var shiftDayBeginningToEnd = function(day) {
-    return Rally.util.DateTime.add(Rally.util.DateTime.add(day,'hour',11), 'minute',59);
+    return Rally.util.DateTime.add(Rally.util.DateTime.add(Rally.util.DateTime.add(day,'hour',23), 'minute',59),'second',59);
 };
 
 Ext.define('mockStory',{

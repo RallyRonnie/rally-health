@@ -111,7 +111,7 @@ describe("Fast Project Model tests for associating with an iteration",function()
                 accepted_day_3,in_p_day_3,defined_day_3
             ]);
             
-            var all_hash = project.getDailyTotalByState();
+            var all_hash = project.getDailyPlanEstimateTotalByState();
             var all_keys = Ext.Object.getKeys(all_hash);
             expect(all_keys.length).toEqual(2);
         });
@@ -150,7 +150,7 @@ describe("Fast Project Model tests for associating with an iteration",function()
                 accepted_day_3,in_p_day_3,defined_day_3
             ]);
             
-            var all_hash = project.getDailyTotalByState();
+            var all_hash = project.getDailyPlanEstimateTotalByState();
             var all_keys = Ext.Object.getKeys(all_hash);
             expect(all_keys.length).toEqual(1);
         });

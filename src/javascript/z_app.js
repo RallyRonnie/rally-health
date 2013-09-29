@@ -355,7 +355,9 @@ Ext.define('CustomApp', {
                 {text:'Last Day Incompletion Ratio',dataIndex:'health_end_incompletion_ratio',renderer:TSRenderers.incompletionHealth,listeners: column_listeners},
                 {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:TSRenderers.acceptanceHealth,listeners: column_listeners},
                 {text:'Churn',dataIndex:'health_churn',renderer:TSRenderers.churnHealth,listeners: column_listeners },
-                {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners}
+                {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners},
+                {text:'Task Churn',dataIndex:'health_churn_task',renderer:TSRenderers.churnTaskHealth,listeners: column_listeners}
+                
             ]
         });
         this.down('#grid_box').add(this.grid);

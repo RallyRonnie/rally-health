@@ -82,15 +82,56 @@ describe("Fast Project Model tests for ICFD health",function(){
             expected_daily_totals[tuesday] = 10;
             expected_daily_totals[wednesday] = 11
             
-            expect(project.getDailyTotalByState()).toEqual(expected_daily_totals);
+            expect(project.getDailyPlanEstimateTotalByState()).toEqual(expected_daily_totals);
             
             var expected_daily_progress_totals = {};
             expected_daily_progress_totals[monday] = 1;
             expected_daily_progress_totals[tuesday] = 4;
             expected_daily_progress_totals[wednesday] = 3;
             
-            expect(project.getDailyTotalByState('In-Progress')).toEqual(expected_daily_progress_totals);
+            expect(project.getDailyPlanEstimateTotalByState('In-Progress')).toEqual(expected_daily_progress_totals);
         });
+        
+        it('should determine total daily task estimates',function() {
+            var project = Ext.create('Rally.technicalservices.ProjectModel',{
+                Name: 'Child',
+                ObjectID: 1235
+            });
+            
+            // Day 1, 20% in progress
+            var accepted_day_1 = Ext.create('mockCFD',{ CardState:'Completed', TaskEstimateTotal: 0, CreationDate: monday });
+            var in_p_day_1 = Ext.create('mockCFD',{ CardState:'In-Progress', TaskEstimateTotal: 1, CreationDate: monday });
+            var defined_day_1 = Ext.create('mockCFD',{ CardState:'Defined', TaskEstimateTotal: 4, CreationDate: monday });
+            // Day 2, 40% in progress
+            var accepted_day_2 = Ext.create('mockCFD',{ CardState:'Completed', TaskEstimateTotal: 2, CreationDate: tuesday });
+            var in_p_day_2 = Ext.create('mockCFD',{ CardState:'In-Progress', TaskEstimateTotal: 4, CreationDate: tuesday });
+            var defined_day_2 = Ext.create('mockCFD',{ CardState:'Defined', TaskEstimateTotal: 4, CreationDate: tuesday });
+            // Day 3, 15% in progress 
+            var accepted_day_3 = Ext.create('mockCFD',{ CardState:'Completed', TaskEstimateTotal: 8, CreationDate: wednesday });
+            var in_p_day_3 = Ext.create('mockCFD',{ CardState:'In-Progress', TaskEstimateTotal: 3, CreationDate: wednesday });
+            var defined_day_3 = Ext.create('mockCFD',{ CardState:'Defined', TaskEstimateTotal: 0, CreationDate: wednesday });
+            
+            project.setIterationCumulativeFlowData([
+                accepted_day_1,in_p_day_1,defined_day_1,
+                accepted_day_2,in_p_day_2,defined_day_2,
+                accepted_day_3,in_p_day_3,defined_day_3
+            ]);
+            
+            var expected_daily_totals = {};
+            expected_daily_totals[monday] = 5;
+            expected_daily_totals[tuesday] = 10;
+            expected_daily_totals[wednesday] = 11
+            
+            expect(project.getDailyTaskEstimateTotalByState()).toEqual(expected_daily_totals);
+            
+            var expected_daily_progress_totals = {};
+            expected_daily_progress_totals[monday] = 1;
+            expected_daily_progress_totals[tuesday] = 4;
+            expected_daily_progress_totals[wednesday] = 3;
+            
+            expect(project.getDailyTaskEstimateTotalByState('In-Progress')).toEqual(expected_daily_progress_totals);
+        });
+        
     });
     
     describe("When adding ICFD data to projects to calculate daily in-progress",function(){
