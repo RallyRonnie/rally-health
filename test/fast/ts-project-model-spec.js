@@ -6,6 +6,7 @@ describe("Fast Project Model tests",function(){
             expect(pm.get('Name')).toEqual("");
             expect(pm.get('ObjectID')).toEqual(0);
             expect(pm.get('parent_id')).toBe(0);
+            expect(pm.get('metric')).toEqual('estimate');
         });
         it('should set easy values',function() {
             var pm = Ext.create('Rally.technicalservices.ProjectModel',{
@@ -19,6 +20,22 @@ describe("Fast Project Model tests",function(){
             
             expect(pm.get('text')).toEqual('Project Model');
             expect(pm.get('id')).toEqual(1234);
+        });
+        it('should set metric to count', function() {
+            var pm = Ext.create('Rally.technicalservices.ProjectModel',{
+                Name: 'Project Model',
+                ObjectID: 1234,
+                metric: 'Count'
+            });
+            expect(pm.get('metric')).toEqual('count');
+        });
+        it('should set metric to estimate if anything but count is provided', function() {
+            var pm = Ext.create('Rally.technicalservices.ProjectModel',{
+                Name: 'Project Model',
+                ObjectID: 1234,
+                metric: 'Buffy the Vampire Slayer'
+            });
+            expect(pm.get('metric')).toEqual('estimate');
         });
     //        
         it('should set associations',function() {

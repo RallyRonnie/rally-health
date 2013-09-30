@@ -65,10 +65,11 @@
             if ( percent > 75 ) {
                 color = TSRenderers.red;
             }
+
+        }
             if ( percent === 200 ) {
                 text = "Never";
             }
-        }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },

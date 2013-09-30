@@ -3,15 +3,22 @@ var useName = function(value,record) {
         return record.get('Name');
     } 
     return null;
-}
+};
 
 var useObjectID = function(value,record) {
     if ( record.get('ObjectID') ) {
         return record.get('ObjectID');
     } 
     return 0;
-}
+};
 
+var convertMetric = function(value,record) {
+    value = value.toLowerCase();
+    if ( value !== "count" ) {
+        value = "estimate";
+    }
+    return value;
+};
 Ext.define('Rally.technicalservices.ProjectModel',{
     extend: 'Ext.data.Model',
     require: ['Rally.technicalservices.util.Utilities'],
@@ -21,6 +28,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         {name:'parent_id',type:'int'},
         {name:'id',type:'int',convert:useObjectID},
         {name:'text',type:'string',convert:useName},
+        {name:'metric',type:'string',defaultValue:'estimate',convert:convertMetric}, /* by count or by estimate */
         /* values from the one associated iteration */
         {name:'iteration_name',type:'string',defaultValue:''},
         {name:'iteration_end_date',type:'auto'},
