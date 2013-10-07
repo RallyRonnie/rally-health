@@ -105,6 +105,31 @@
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },
+    completionHealth: function(value,metaData,record) {
+        if ( value < 0 ) {
+            return " ";
+        }
+        var percent = parseInt( 100 * value, 10 );
+        var text = percent + "%";
+        
+        var color = TSRenderers.green;
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+            color = '#D0D0D0';
+        } else {
+            if ( percent < 100 ) {
+                color = TSRenderers.yellow;
+            }
+            if ( percent < 95 ) {
+                color = TSRenderers.red;
+            }
+            if ( percent === 200 ) {
+                color = "white";
+                text = "No Data";
+            }
+        }
+        metaData.style = "background-color: " + color;
+        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+    },
     acceptanceHealth: function(value,metaData,record) {
         if ( value < 0 ) {
             return " ";

@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Oct 07 2013 16:02:39 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Oct 07 2013 16:21:36 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -200,6 +200,31 @@ Ext.define('Rally.technicalservices.logger',{
                 color = TSRenderers.yellow;
             }
             if ( percent > 20 ) {
+                color = TSRenderers.red;
+            }
+            if ( percent === 200 ) {
+                color = "white";
+                text = "No Data";
+            }
+        }
+        metaData.style = "background-color: " + color;
+        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+    },
+    completionHealth: function(value,metaData,record) {
+        if ( value < 0 ) {
+            return " ";
+        }
+        var percent = parseInt( 100 * value, 10 );
+        var text = percent + "%";
+        
+        var color = TSRenderers.green;
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+            color = '#D0D0D0';
+        } else {
+            if ( percent < 100 ) {
+                color = TSRenderers.yellow;
+            }
+            if ( percent < 95 ) {
                 color = TSRenderers.red;
             }
             if ( percent === 200 ) {
@@ -467,7 +492,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         {name:'health_ratio_in_progress',type:'float',defaultValue:0},
         {name:'health_half_accepted_ratio',type:'float',defaultValue:2},
         {name:'health_half_accepted_date',type:'date',defaultValue:null},
-        {name:'health_end_incompletion_ratio',type:'float',defaultValue:2},
+        {name:'health_end_incompletion_ratio',type:'float',defaultValue:-1},
+        {name:'health_end_completion_ratio',type:'float',defaultValue:-1},
         {name:'health_end_acceptance_ratio',type:'float',defaultValue:2},
         {name:'health_churn',type:'float',defaultValue:-2},
         {name:'health_churn_direction',type:'float',defaultValue:-2},
@@ -486,6 +512,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         this.set('health_ratio_in_progress',-1);
         this.set('health_half_accepted_ratio',-1);
         this.set('health_end_incompletion_ratio',-1);
+        this.set('health_end_completion_ratio',-1);
         this.set('health_end_acceptance_ratio',-1);
 
         if ( child.get('parent_id') !== this.get('ObjectID') ) {
@@ -718,7 +745,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var completion_hash = this.getDailyPlanEstimateTotalByState("Completed");
         
         if (!all_hash) { 
-            this.set('health_end_incompletion_ratio',0); 
+            this.set('health_end_incompletion_ratio',2);
+            this.set('health_end_completion_ratio',2);
         } else {
             var card_dates = Ext.Object.getKeys(all_hash);
             var last_date = card_dates.pop();
@@ -734,8 +762,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
             }
             var ratio = 1 - ( (last_completed+last_accepted)/last_total );
             ratio = Ext.util.Format.number(ratio,"0.00");
+            var inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
             
             this.set('health_end_incompletion_ratio',ratio);
+            this.set('health_end_completion_ratio',inverse_ratio);
         }
     },
     /**
@@ -1324,7 +1354,7 @@ Ext.define('CustomApp', {
                 {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer: TSRenderers.estimateHealth,listeners: column_listeners},
                 {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer: TSRenderers.inProgressHealth,listeners: column_listeners},
                 {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:TSRenderers.halfAcceptedHealth,listeners: column_listeners},
-                {text:'Last Day Incompletion Ratio',dataIndex:'health_end_incompletion_ratio',renderer:TSRenderers.incompletionHealth,listeners: column_listeners},
+                {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:TSRenderers.completionHealth,listeners: column_listeners},
                 {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:TSRenderers.acceptanceHealth,listeners: column_listeners},
                 {text:'Churn',dataIndex:'health_churn',renderer:TSRenderers.churnHealth,listeners: column_listeners },
                 {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners},

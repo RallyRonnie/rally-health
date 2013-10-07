@@ -42,7 +42,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         {name:'health_ratio_in_progress',type:'float',defaultValue:0},
         {name:'health_half_accepted_ratio',type:'float',defaultValue:2},
         {name:'health_half_accepted_date',type:'date',defaultValue:null},
-        {name:'health_end_incompletion_ratio',type:'float',defaultValue:2},
+        {name:'health_end_incompletion_ratio',type:'float',defaultValue:-1},
+        {name:'health_end_completion_ratio',type:'float',defaultValue:-1},
         {name:'health_end_acceptance_ratio',type:'float',defaultValue:2},
         {name:'health_churn',type:'float',defaultValue:-2},
         {name:'health_churn_direction',type:'float',defaultValue:-2},
@@ -61,6 +62,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         this.set('health_ratio_in_progress',-1);
         this.set('health_half_accepted_ratio',-1);
         this.set('health_end_incompletion_ratio',-1);
+        this.set('health_end_completion_ratio',-1);
         this.set('health_end_acceptance_ratio',-1);
 
         if ( child.get('parent_id') !== this.get('ObjectID') ) {
@@ -293,7 +295,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var completion_hash = this.getDailyPlanEstimateTotalByState("Completed");
         
         if (!all_hash) { 
-            this.set('health_end_incompletion_ratio',0); 
+            this.set('health_end_incompletion_ratio',2);
+            this.set('health_end_completion_ratio',2);
         } else {
             var card_dates = Ext.Object.getKeys(all_hash);
             var last_date = card_dates.pop();
@@ -309,8 +312,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
             }
             var ratio = 1 - ( (last_completed+last_accepted)/last_total );
             ratio = Ext.util.Format.number(ratio,"0.00");
+            var inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
             
             this.set('health_end_incompletion_ratio',ratio);
+            this.set('health_end_completion_ratio',inverse_ratio);
         }
     },
     /**

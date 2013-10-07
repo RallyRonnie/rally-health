@@ -425,7 +425,7 @@ Ext.define('CustomApp', {
                 {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer: TSRenderers.estimateHealth,listeners: column_listeners},
                 {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer: TSRenderers.inProgressHealth,listeners: column_listeners},
                 {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:TSRenderers.halfAcceptedHealth,listeners: column_listeners},
-                {text:'Last Day Incompletion Ratio',dataIndex:'health_end_incompletion_ratio',renderer:TSRenderers.incompletionHealth,listeners: column_listeners},
+                {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:TSRenderers.completionHealth,listeners: column_listeners},
                 {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:TSRenderers.acceptanceHealth,listeners: column_listeners},
                 {text:'Churn',dataIndex:'health_churn',renderer:TSRenderers.churnHealth,listeners: column_listeners },
                 {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners},

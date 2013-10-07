@@ -416,6 +416,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_3,completed_day_3,in_p_day_3,defined_day_3
             ]);
             expect(project.get('health_end_incompletion_ratio')).toEqual(0.33);
+            expect(project.get('health_end_completion_ratio')).toEqual(0.67);
         });
     });
 
