@@ -53,7 +53,9 @@
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
-        var text = percent + "%";
+        var accomplished_date = record.get('health_half_accepted_date');
+        var text = TSRenderers.shortDate(accomplished_date) + " (" + percent + "%)";
+        
         
         var color = TSRenderers.green;
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
@@ -67,9 +69,9 @@
             }
 
         }
-            if ( percent === 200 ) {
-                text = "Never";
-            }
+        if ( percent === 200 ) {
+            text = "Never";
+        }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },

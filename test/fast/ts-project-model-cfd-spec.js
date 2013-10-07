@@ -44,6 +44,8 @@ describe("Fast Project Model tests for ICFD health",function(){
             expect(parent.get('health_ratio_in_progress')).toEqual(-1);
             expect(child.get('health_half_accepted_ratio')).toEqual(2);
             expect(parent.get('health_half_accepted_ratio')).toEqual(-1);
+            expect(child.get('health_half_accepted_date')).toEqual(null);
+            expect(parent.get('health_half_accepted_date')).toEqual(null);
             expect(child.get('health_end_incompletion_ratio')).toEqual(2);
             expect(parent.get('health_end_incompletion_ratio')).toEqual(-1);
             expect(child.get('health_end_acceptance_ratio')).toEqual(2);
@@ -212,6 +214,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_3,in_p_day_3,defined_day_3
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(0.67);
+            expect(project.get('health_half_accepted_date')).toEqual(tuesday);
         });
         
         it('should determine day count for half accepted when given total days in sprint and discounting weekends',function() {
@@ -253,6 +256,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_4,in_p_day_4,defined_day_4
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(0.33);
+            expect(project.get('health_half_accepted_date')).toEqual(monday);
         });
         
         it('should determine day count for half accepted when given total days in sprint',function() {
@@ -282,6 +286,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_3,in_p_day_3,defined_day_3
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(0.33);
+            expect(project.get('health_half_accepted_date')).toEqual(tuesday);
         });
         
         
@@ -315,6 +320,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_4,in_p_day_4,defined_day_4
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(1);
+            expect(project.get('health_half_accepted_date')).toEqual(thursday);
         });
 
         it('should return 2 if not 50% accepted',function() {
@@ -348,6 +354,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_4,in_p_day_4,defined_day_4
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(2);
+            expect(project.get('health_half_accepted_date')).toEqual(null);
         });
         
         it('should determine day count for half accepted (when assuming number of days from flow)',function() {
@@ -376,6 +383,7 @@ describe("Fast Project Model tests for ICFD health",function(){
                 accepted_day_3,in_p_day_3,defined_day_3
             ]);
             expect(project.get('health_half_accepted_ratio')).toEqual(0.33);
+            expect(project.get('health_half_accepted_date')).toEqual(monday);
         });
     });
     

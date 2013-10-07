@@ -39,6 +39,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         {name:'health_ratio_estimated',type:'float',defaultValue:0},
         {name:'health_ratio_in_progress',type:'float',defaultValue:0},
         {name:'health_half_accepted_ratio',type:'float',defaultValue:2},
+        {name:'health_half_accepted_date',type:'date',defaultValue:null},
         {name:'health_end_incompletion_ratio',type:'float',defaultValue:2},
         {name:'health_end_acceptance_ratio',type:'float',defaultValue:2},
         {name:'health_churn',type:'float',defaultValue:-2},
@@ -232,6 +233,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         } else {
             var day_index = -1;
             var day_counter = 0;
+            var day_accomplished = null;
+            
             for ( var card_date in all_hash ) {
                     day_counter++;
                     
@@ -240,9 +243,11 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                     
                     if ( day_accepted/day_total >= 0.5 && day_index === -1 ) {
                         day_index = day_counter;
+                        day_accomplished = card_date;
                     } else if ( day_accepted/day_total < 0.5 && day_index > -1 ) {
                         // if we slipped back to under 50%
                         day_index = -1;
+                        day_accomplished = null;
                     }
             }
             var ratio = 2;
@@ -254,6 +259,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                 ratio = Ext.util.Format.number(day_index/day_counter,"0.00");
             }
             this.set('health_half_accepted_ratio',ratio);
+            this.set('health_half_accepted_date',day_accomplished);
         }
     },
     /**

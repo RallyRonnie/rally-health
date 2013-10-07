@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Oct 06 2013 19:09:42 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Oct 06 2013 19:23:36 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -158,7 +158,9 @@ Ext.define('Rally.technicalservices.logger',{
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
-        var text = percent + "%";
+        var accomplished_date = record.get('health_half_accepted_date');
+        var text = TSRenderers.shortDate(accomplished_date) + " (" + percent + "%)";
+        
         
         var color = TSRenderers.green;
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
@@ -172,9 +174,9 @@ Ext.define('Rally.technicalservices.logger',{
             }
 
         }
-            if ( percent === 200 ) {
-                text = "Never";
-            }
+        if ( percent === 200 ) {
+            text = "Never";
+        }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },
@@ -457,6 +459,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         {name:'health_ratio_estimated',type:'float',defaultValue:0},
         {name:'health_ratio_in_progress',type:'float',defaultValue:0},
         {name:'health_half_accepted_ratio',type:'float',defaultValue:2},
+        {name:'health_half_accepted_date',type:'date',defaultValue:null},
         {name:'health_end_incompletion_ratio',type:'float',defaultValue:2},
         {name:'health_end_acceptance_ratio',type:'float',defaultValue:2},
         {name:'health_churn',type:'float',defaultValue:-2},
@@ -650,6 +653,8 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         } else {
             var day_index = -1;
             var day_counter = 0;
+            var day_accomplished = null;
+            
             for ( var card_date in all_hash ) {
                     day_counter++;
                     
@@ -658,9 +663,11 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                     
                     if ( day_accepted/day_total >= 0.5 && day_index === -1 ) {
                         day_index = day_counter;
+                        day_accomplished = card_date;
                     } else if ( day_accepted/day_total < 0.5 && day_index > -1 ) {
                         // if we slipped back to under 50%
                         day_index = -1;
+                        day_accomplished = null;
                     }
             }
             var ratio = 2;
@@ -672,6 +679,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                 ratio = Ext.util.Format.number(day_index/day_counter,"0.00");
             }
             this.set('health_half_accepted_ratio',ratio);
+            this.set('health_half_accepted_date',day_accomplished);
         }
     },
     /**
