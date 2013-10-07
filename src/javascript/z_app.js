@@ -8,9 +8,45 @@ Ext.define('CustomApp', {
     ],
     _project_store: null,
     launch: function() {
-        this.number_of_iterations = 3;
-        this._addIterationCountSelector();
-        this._addMetricSelector();
+        this._projectIsParentSwitch(
+            function() { 
+                // if it's a parent, do this:
+                this.down('#selector_box').add({
+                    xtype:'container',
+                    html:'This app is designed for use at the team level.' +
+                        '<br/>Change the context selector to a leaf team node.'
+                    });
+            }, 
+            function(){ 
+                // if it's not a parent, do this:
+                this.number_of_iterations = 3;
+                this._addIterationCountSelector();
+                this._addMetricSelector();
+            });
+        
+//        if ( this._contextIsParentProject() ) {
+//        } else {
+
+//        }
+    },
+    _projectIsParentSwitch: function(is_parent_callback, is_not_parent_callback) {
+        var project_oid = this.getContext().getProject().ObjectID;
+        
+        Ext.create('Rally.data.WsapiDataStore',{
+            model:'Project',
+            filters: [{property:'Parent.ObjectID',value:project_oid}],
+            autoLoad: true,
+            listeners: {
+                load: function(store,records){
+                    if (records.length > 0) {
+                       is_parent_callback.call(this);
+                    } else {
+                        is_not_parent_callback.call(this);
+                    }
+                }, 
+                scope: this
+            }
+        });
     },
     _addMetricSelector: function() {
         var me = this;
@@ -41,7 +77,6 @@ Ext.define('CustomApp', {
                             me._setArtifactHealth(project.get('iteration_name'),project);
                         });
                     }
-                    //me._populateConfigurationReporter();
                 }
             }
         }).setValue('estimate');
@@ -120,7 +155,7 @@ Ext.define('CustomApp', {
             autoLoad: true,
             sorters: [{ property: 'EndDate', direction: 'DESC' }],
             filters: [{ property: 'EndDate', operator: '<', value: today_iso}],
-            context: { projectScopeDown: false },
+            context: { projectScopeDown: false, projectScopeUp: false },
             listeners: {
                 scope: this,
                 load: function(store,iterations){
