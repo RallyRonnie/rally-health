@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Sep 30 2013 09:13:00 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Oct 06 2013 19:09:42 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -234,13 +234,13 @@ Ext.define('Rally.technicalservices.logger',{
         var text = "No data";
         var color = "white";
         
+        if ( value >= 0 ) {
+            var percent = parseInt( 100 * value, 10 );
+            text = percent + "%";
+        }
+        
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
             color = '#D0D0D0';
-        } else {
-            if ( value > 0 ) {
-                var percent = parseInt( 100 * value, 10 );
-                text = percent + "%";
-            }
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -248,14 +248,13 @@ Ext.define('Rally.technicalservices.logger',{
     churnTaskHealth: function(value,metaData,record) {
         var text = "No data";
         var color = "white";
-        
+        if ( value >= 0 ) {
+            var percent = parseInt( 100 * value, 10 );
+            text = percent + "%";
+        }
+            
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
             color = '#D0D0D0';
-        } else {
-            if ( value > 0 ) {
-                var percent = parseInt( 100 * value, 10 );
-                text = percent + "%";
-            }
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -1090,6 +1089,7 @@ Ext.define('CustomApp', {
             model:'IterationCumulativeFlowData',
             autoLoad: true,
             filters: [{property:'IterationObjectID',value:iteration_oid}],
+            fetch: ['CardCount','CardEstimateTotal','CreationDate','IterationObjectID','TaskEstimateTotal','CardToDoTotal','CardState'],
             listeners: {
                 load: function(store,records){
                     if ( records.length === 0 ) {

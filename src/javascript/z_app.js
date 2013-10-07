@@ -221,6 +221,7 @@ Ext.define('CustomApp', {
             model:'IterationCumulativeFlowData',
             autoLoad: true,
             filters: [{property:'IterationObjectID',value:iteration_oid}],
+            fetch: ['CardCount','CardEstimateTotal','CreationDate','IterationObjectID','TaskEstimateTotal','CardToDoTotal','CardState'],
             listeners: {
                 load: function(store,records){
                     if ( records.length === 0 ) {

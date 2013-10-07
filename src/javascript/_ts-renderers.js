@@ -129,13 +129,13 @@
         var text = "No data";
         var color = "white";
         
+        if ( value >= 0 ) {
+            var percent = parseInt( 100 * value, 10 );
+            text = percent + "%";
+        }
+        
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
             color = '#D0D0D0';
-        } else {
-            if ( value > 0 ) {
-                var percent = parseInt( 100 * value, 10 );
-                text = percent + "%";
-            }
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -143,14 +143,13 @@
     churnTaskHealth: function(value,metaData,record) {
         var text = "No data";
         var color = "white";
-        
+        if ( value >= 0 ) {
+            var percent = parseInt( 100 * value, 10 );
+            text = percent + "%";
+        }
+            
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
             color = '#D0D0D0';
-        } else {
-            if ( value > 0 ) {
-                var percent = parseInt( 100 * value, 10 );
-                text = percent + "%";
-            }
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
