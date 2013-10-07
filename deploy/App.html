@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Sun Oct 06 2013 19:23:36 GMT-0700 (PDT) -->
+    <!--  Build Date: Sun Oct 06 2013 20:55:03 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -117,11 +117,16 @@ Ext.define('Rally.technicalservices.logger',{
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
     },
-    estimateHealth: function(value,metaData) {
+    estimateHealth: function(value,metaData,record) {
         
         if ( value < 0 ) {
             return " ";
         }
+        
+        if (record.get('metric') == 'count' ) {
+            return "N/A";
+        }
+        
         var percent = parseInt( 100 * value, 10 );
         var color = TSRenderers.green;
         if ( value < TSRenderers.health_green_limit ) {
@@ -137,7 +142,7 @@ Ext.define('Rally.technicalservices.logger',{
         var color = TSRenderers.green;
 
         var percent = parseInt( 100 * value, 10 );
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( value < 0 ) {
@@ -163,7 +168,7 @@ Ext.define('Rally.technicalservices.logger',{
         
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( percent > 50 ) {
@@ -188,7 +193,7 @@ Ext.define('Rally.technicalservices.logger',{
         var text = percent + "%";
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( percent > 9 ) {
@@ -213,7 +218,7 @@ Ext.define('Rally.technicalservices.logger',{
         var text = percent + "%";
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             
@@ -241,7 +246,7 @@ Ext.define('Rally.technicalservices.logger',{
             text = percent + "%";
         }
         
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;
@@ -255,7 +260,7 @@ Ext.define('Rally.technicalservices.logger',{
             text = percent + "%";
         }
             
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;
@@ -271,7 +276,7 @@ Ext.define('Rally.technicalservices.logger',{
         } else if ( value > 0 ) {
             display_value = "<img src='/slm/mashup/1.11/images/plus.gif' title='up'>";
         }
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;
@@ -442,6 +447,8 @@ var convertMetric = function(value,record) {
 Ext.define('Rally.technicalservices.ProjectModel',{
     extend: 'Ext.data.Model',
     require: ['Rally.technicalservices.util.Utilities'],
+    daily_plan_estimate_totals: {},
+    daily_task_estimate_totals: {},
     fields: [
         {name:'ObjectID', type: 'int'},
         {name:'Name',type:'string'},
@@ -470,6 +477,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
     associations: [
         {type:'belongsTo',model:'Rally.technicalservices.ProjectModel', setterName: 'setParent', getterName:'getParent', primaryKey:'ObjectID',foreignKey:'parent_id'}
     ],
+    setMetric: function(metric) {
+        this.set('metric',metric);
+        this._recalculate();
+    },
     addChild: function(child) {
         this.set('health_ratio_estimated',-1);
         this.set('health_ratio_in_progress',-1);
@@ -511,6 +522,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         return { 'children': children };
     },
 
+    calculateTotals:function() {
+        
+    },
     /**
      * Given an array of iteration cumulative flow objects, calculate a few health metrics
      */
@@ -518,6 +532,12 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var me = this;
         this.daily_plan_estimate_totals = {};
         this.daily_task_estimate_totals = {};
+        this.icfd = icfd;
+        this._recalculate();
+    },
+    _recalculate: function() {
+        var me = this;
+        var icfd = this.icfd;
         
         if ( this.get('child_count')  > 0 ) {
             this.set('health_ratio_in_progress',-1);
@@ -532,6 +552,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                         var card_state = cf.get('CardState');
                         var card_task_estimate = cf.get('TaskEstimateTotal');
                         
+                        if ( me.get('metric') == 'count' ) {
+                            card_plan_estimate = cf.get('CardCount');
+                        }
                         if ( !me.daily_plan_estimate_totals.All ) { me.daily_plan_estimate_totals.All = {}; }
                         if ( !me.daily_plan_estimate_totals[card_state]){ me.daily_plan_estimate_totals[card_state] = {} }
                         if ( !me.daily_task_estimate_totals.All ) { me.daily_task_estimate_totals.All = {}; }
@@ -549,14 +572,14 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                     }
                 }
             });
-            
             this._setAverageInProgress();
             this._setHalfAcceptanceRatio();
             this._setAcceptanceRatio();
             this._setIncompletionRatio();
             this._setChurn();
-            this._setTaskChurn();
+            this._setTaskChurn();            
         }
+
     },
     _setChurn: function(){
         var me = this;
@@ -879,13 +902,49 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     logger: new Rally.technicalservices.logger(),
     items: [ 
-        { xtype:'container',itemId:'selector_box', padding: 5, layout: { type:'hbox'} }, 
+        { xtype:'container',itemId:'selector_box', padding: 5, defaults: { padding: 5 }, layout: { type:'hbox'} }, 
         { xtype:'container', itemId:'grid_box', padding: 5 }
     ],
     _project_store: null,
     launch: function() {
         this.number_of_iterations = 3;
         this._addIterationCountSelector();
+        this._addMetricSelector();
+    },
+    _addMetricSelector: function() {
+        var me = this;
+        var metrics = Ext.create('Ext.data.Store', {
+            fields: ['name', 'value'],
+            data : [
+                {"name":"By Points", "value":"estimate"},
+                {"name":"By Count", "value":"count"}
+            ]
+        });
+        
+        this.down('#selector_box').add({
+            itemId: 'metric_selector',
+            xtype: 'combobox',
+            fieldLabel: 'Metric:',
+            store: metrics,
+            displayField: 'name',
+            valueField:'value',
+            labelWidth: 50,
+            listeners: {
+                change: function(cb,new_value) {
+                    if ( me._project_store ) {
+                        var projects = me._project_store.getRecords();
+                        me.logger.log(this,"Set metric to ", new_value);
+                        Ext.Array.each(projects,function(project){
+                            project.resetHealth();
+                            project.setMetric(new_value);
+                            me._setArtifactHealth(project.get('iteration_name'),project);
+                        });
+                    }
+                    //me._populateConfigurationReporter();
+                }
+            }
+        }).setValue('estimate');
+
     },
     _addIterationCountSelector: function() {
         
@@ -1074,7 +1133,8 @@ Ext.define('CustomApp', {
             
             Ext.Array.each(projects,function(project){
                 project.resetHealth();
-                //project.set('number_of_days_in_sprint',me._selected_timebox.get('number_of_days_in_sprint'));
+                project.setMetric(me.down('#metric_selector').getValue());
+               
                 me._setArtifactHealth(project.get('iteration_name'),project);
                 me._setCumulativeHealth(project.get('iteration_name'),project);
             });

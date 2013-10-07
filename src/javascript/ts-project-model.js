@@ -22,6 +22,8 @@ var convertMetric = function(value,record) {
 Ext.define('Rally.technicalservices.ProjectModel',{
     extend: 'Ext.data.Model',
     require: ['Rally.technicalservices.util.Utilities'],
+    daily_plan_estimate_totals: {},
+    daily_task_estimate_totals: {},
     fields: [
         {name:'ObjectID', type: 'int'},
         {name:'Name',type:'string'},
@@ -50,6 +52,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
     associations: [
         {type:'belongsTo',model:'Rally.technicalservices.ProjectModel', setterName: 'setParent', getterName:'getParent', primaryKey:'ObjectID',foreignKey:'parent_id'}
     ],
+    setMetric: function(metric) {
+        this.set('metric',metric);
+        this._recalculate();
+    },
     addChild: function(child) {
         this.set('health_ratio_estimated',-1);
         this.set('health_ratio_in_progress',-1);
@@ -91,6 +97,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         return { 'children': children };
     },
 
+    calculateTotals:function() {
+        
+    },
     /**
      * Given an array of iteration cumulative flow objects, calculate a few health metrics
      */
@@ -98,6 +107,12 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var me = this;
         this.daily_plan_estimate_totals = {};
         this.daily_task_estimate_totals = {};
+        this.icfd = icfd;
+        this._recalculate();
+    },
+    _recalculate: function() {
+        var me = this;
+        var icfd = this.icfd;
         
         if ( this.get('child_count')  > 0 ) {
             this.set('health_ratio_in_progress',-1);
@@ -112,6 +127,9 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                         var card_state = cf.get('CardState');
                         var card_task_estimate = cf.get('TaskEstimateTotal');
                         
+                        if ( me.get('metric') == 'count' ) {
+                            card_plan_estimate = cf.get('CardCount');
+                        }
                         if ( !me.daily_plan_estimate_totals.All ) { me.daily_plan_estimate_totals.All = {}; }
                         if ( !me.daily_plan_estimate_totals[card_state]){ me.daily_plan_estimate_totals[card_state] = {} }
                         if ( !me.daily_task_estimate_totals.All ) { me.daily_task_estimate_totals.All = {}; }
@@ -129,14 +147,14 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                     }
                 }
             });
-            
             this._setAverageInProgress();
             this._setHalfAcceptanceRatio();
             this._setAcceptanceRatio();
             this._setIncompletionRatio();
             this._setChurn();
-            this._setTaskChurn();
+            this._setTaskChurn();            
         }
+
     },
     _setChurn: function(){
         var me = this;

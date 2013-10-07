@@ -12,11 +12,16 @@
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
     },
-    estimateHealth: function(value,metaData) {
+    estimateHealth: function(value,metaData,record) {
         
         if ( value < 0 ) {
             return " ";
         }
+        
+        if (record.get('metric') == 'count' ) {
+            return "N/A";
+        }
+        
         var percent = parseInt( 100 * value, 10 );
         var color = TSRenderers.green;
         if ( value < TSRenderers.health_green_limit ) {
@@ -32,7 +37,7 @@
         var color = TSRenderers.green;
 
         var percent = parseInt( 100 * value, 10 );
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( value < 0 ) {
@@ -58,7 +63,7 @@
         
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( percent > 50 ) {
@@ -83,7 +88,7 @@
         var text = percent + "%";
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             if ( percent > 9 ) {
@@ -108,7 +113,7 @@
         var text = percent + "%";
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         } else {
             
@@ -136,7 +141,7 @@
             text = percent + "%";
         }
         
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;
@@ -150,7 +155,7 @@
             text = percent + "%";
         }
             
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;
@@ -166,7 +171,7 @@
         } else if ( value > 0 ) {
             display_value = "<img src='/slm/mashup/1.11/images/plus.gif' title='up'>";
         }
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit ) {
+        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
             color = '#D0D0D0';
         }
         metaData.style = "background-color: " + color;

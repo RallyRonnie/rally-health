@@ -3,13 +3,49 @@ Ext.define('CustomApp', {
     componentCls: 'app',
     logger: new Rally.technicalservices.logger(),
     items: [ 
-        { xtype:'container',itemId:'selector_box', padding: 5, layout: { type:'hbox'} }, 
+        { xtype:'container',itemId:'selector_box', padding: 5, defaults: { padding: 5 }, layout: { type:'hbox'} }, 
         { xtype:'container', itemId:'grid_box', padding: 5 }
     ],
     _project_store: null,
     launch: function() {
         this.number_of_iterations = 3;
         this._addIterationCountSelector();
+        this._addMetricSelector();
+    },
+    _addMetricSelector: function() {
+        var me = this;
+        var metrics = Ext.create('Ext.data.Store', {
+            fields: ['name', 'value'],
+            data : [
+                {"name":"By Points", "value":"estimate"},
+                {"name":"By Count", "value":"count"}
+            ]
+        });
+        
+        this.down('#selector_box').add({
+            itemId: 'metric_selector',
+            xtype: 'combobox',
+            fieldLabel: 'Metric:',
+            store: metrics,
+            displayField: 'name',
+            valueField:'value',
+            labelWidth: 50,
+            listeners: {
+                change: function(cb,new_value) {
+                    if ( me._project_store ) {
+                        var projects = me._project_store.getRecords();
+                        me.logger.log(this,"Set metric to ", new_value);
+                        Ext.Array.each(projects,function(project){
+                            project.resetHealth();
+                            project.setMetric(new_value);
+                            me._setArtifactHealth(project.get('iteration_name'),project);
+                        });
+                    }
+                    //me._populateConfigurationReporter();
+                }
+            }
+        }).setValue('estimate');
+
     },
     _addIterationCountSelector: function() {
         
@@ -198,7 +234,8 @@ Ext.define('CustomApp', {
             
             Ext.Array.each(projects,function(project){
                 project.resetHealth();
-                //project.set('number_of_days_in_sprint',me._selected_timebox.get('number_of_days_in_sprint'));
+                project.setMetric(me.down('#metric_selector').getValue());
+               
                 me._setArtifactHealth(project.get('iteration_name'),project);
                 me._setCumulativeHealth(project.get('iteration_name'),project);
             });
