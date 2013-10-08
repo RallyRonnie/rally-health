@@ -1,4 +1,9 @@
-Ext.define('TSDescriptions', {
+/**
+ * make a method for each dataIndex from the column that needs a description
+ * 
+ */
+
+ Ext.define('TSDescriptions', {
     singleton: true,
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
@@ -62,14 +67,16 @@ Ext.define('TSDescriptions', {
             return data_name;
         }
     },
-    health_churn: "<b>{text}</b> <br/><br/>A measure of the change in the iteration's scope.<br/><br/>" +
-         "It is defined as the standard deviation of the total scheduled <br/>" +
-         "into the sprint divided by the average daily total.",
-                  
-    health_churn_direction: "<b>{text}</b> is an indicator of the general direction of scope change.<br/><br/>" +
-        "It is determined by examining every day's change from the day before and adding or subtracting <br/>" +
-        "the delta to determine whether scope has been added more often than subtracted. (The first day of <br/>" +
-        "the iteration is excluded from this calculation.)",
+    health_churn: "<h1>Description</h1>" +
+            "Churn is a measure of the change in the iteration's scope." +
+            "<h1>How it is calculated</h1>" +
+            "It is defined as the standard deviation of the total scheduled into the sprint divided by the average daily total.",
+    health_churn_direction: "<h1>Description</h1>" +
+            "Churn Direction is an indicator of the general direction of scope change.  Churn is defined as a standard deviation, which " +
+            "is always zero or positive, so this added indicator provides an indication of whether scope tended to be added or removed " +
+            "<h1>How it is calculated</h1>" +
+            "It is determined by examining every day's change from the day before and adding or subtracting the delta to determine " +
+            "whether scope has been added more often than subtracted. (The first day of the iteration is excluded from this calculation.)",
         
     number_of_days_in_sprint: "The number of full days in the iteration " +
             "(Excluding weekends)",

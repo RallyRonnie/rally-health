@@ -1,5 +1,8 @@
 /*
- * A simple collection of renderers by name.  Note that "this" is NOT this singleton
+ * A simple collection of renderers by name.  
+ * 
+ * If a property in ranges is named by the columns dataIndex, it'll show a slider bar for modifying
+ * the ranges.  The rendering requires that a main property is set for each dataIndex that uses the renderer.
  * 
  */
  
@@ -19,8 +22,7 @@
             health_end_completion_ratio: { red: 0, yellow: 95, green: 100, direction: 'ryg' },
             health_end_acceptance_ratio: { red: 0, yellow: 50, green: 91, direction: 'ryg' }
         }
-    },                   
-
+    },
     
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
@@ -205,7 +207,7 @@
         metaData.style = "background-color: " + color;
         return text;
     },
-    churnHealth: function(value,metaData,record) {
+    health_churn: function(value,metaData,record) {
         
         var text = "No data";
         var color = "white";
@@ -215,11 +217,11 @@
             text = percent + "%";
         }
         
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+        if ( this.shouldBeGrey(record) ) {
             color = this.grey;
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
+        return text;
     },
     churnTaskHealth: function(value,metaData,record) {
         var text = "No data";
@@ -235,7 +237,7 @@
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
     },
-    churnDirection: function(value,metaData,record) {
+    health_churn_direction: function(value,metaData,record) {
         var color = "white";
         var display_value = ".";
         if ( value === -2 ) {
@@ -245,7 +247,7 @@
         } else if ( value > 0 ) {
             display_value = "<img src='/slm/mashup/1.11/images/plus.gif' title='up'>";
         }
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+        if ( this.shouldBeGrey(record) ) {
             color = this.grey;
         }
         metaData.style = "background-color: " + color;
