@@ -461,9 +461,9 @@ Ext.define('CustomApp', {
             {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:render_cell,listeners: column_listeners},
             {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:render_cell,listeners: column_listeners},
             {text:'Churn',dataIndex:'health_churn',renderer:render_cell,listeners: column_listeners },
-            {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:render_cell,listeners: column_listeners}/*,
-            {text:'Task Churn',dataIndex:'health_churn_task',renderer:cell_renderer.churnTaskHealth,listeners: column_listeners}
-            */
+            {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:render_cell,listeners: column_listeners},
+            {text:'Task Churn',dataIndex:'health_churn_task',renderer:render_cell,listeners: column_listeners}
+            
         ];
             
 

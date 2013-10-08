@@ -77,7 +77,13 @@
             "<h1>How it is calculated</h1>" +
             "It is determined by examining every day's change from the day before and adding or subtracting the delta to determine " +
             "whether scope has been added more often than subtracted. (The first day of the iteration is excluded from this calculation.)",
-        
+    health_churn_task: "<h1>Description</h1>" +
+            "An additional metric indicating when tasks have been added or removed on the last day of the iteration.  If a signivicant" +
+            "percentage of tasks are removed, it could be an indicator that the team is moving committed work items to another iteration." +
+            "<h1>How it is calculated</h1>" +
+            "The number of estimated hours for the tasks scheduled in the iteration on the last day are subtracted from the total estimated " +
+            "hours of tasks scheduled on the next-to-last day, then divided by the next-to-last-day totals to create a percentage.  Note " +
+            "that this is calculated from the <b>estimates</b> of all the tasks, not the hours remaining to-do",
     number_of_days_in_sprint: "The number of full days in the iteration " +
             "(Excluding weekends)",
     health_ratio_estimated: "<h1>Description</h1>" +

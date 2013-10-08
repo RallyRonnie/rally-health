@@ -223,7 +223,7 @@
         metaData.style = "background-color: " + color;
         return text;
     },
-    churnTaskHealth: function(value,metaData,record) {
+    health_churn_task: function(value,metaData,record) {
         var text = "No data";
         var color = "white";
         if ( value >= 0 ) {
@@ -231,7 +231,7 @@
             text = percent + "%";
         }
             
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+        if (this.shouldBeGrey(record)) {
             color = this.grey;
         }
         metaData.style = "background-color: " + color;
