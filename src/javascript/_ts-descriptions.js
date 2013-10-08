@@ -86,8 +86,12 @@ Ext.define('TSDescriptions', {
         "practice is to have a ready backlog as and entrance criteria to an iteration planning session, " + 
         "a ready backlog means three things, sized, ranked, and stories are elaborated sufficiently with " + 
         "acceptance criteria to enable conversation and confirmation during planning.",
-    health_end_acceptance_ratio: "<b>{text}</b> is the percentage of items that were accepted before<br/>" +
-            "the iteration ended.",
+    health_end_acceptance_ratio: "<h1>Description</h1>" +
+        "Indicates whether teams met their commitment, assuming work items have not been removed from the iteration. " +
+        "<h1>How it is calculated</h1>" +
+        "Divide the plan estimates of the work items in the iteration that were accepted on the last day of the iteration " +
+        "by the total plan estimate of all work items in the iteration.  If analysis type is set to 'counts', the calculation " +
+        "is based on the number of work items, not the plan estimate of the work items.",
     health_ratio_in_progress: "<h1>Description</h1>" + 
         "This is an indication of how much work is in progress (WIP).  It is the ratio of the average of " +
         "the work items in the in-Progress state on a daily basis. " +

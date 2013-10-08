@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Oct 07 2013 16:21:36 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Oct 07 2013 20:46:19 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -14,7 +14,44 @@ Ext.define('TSDescriptions', {
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
     },
-    get_description: function(column) {
+    getAdjustor: function(column,cell_renderer){
+        var colors = ["yellow","green"];
+        var field_label = "Range (Red/Yellow/Green)"
+        
+        var values = [50,75];
+        if ( cell_renderer && cell_renderer.ranges[column.dataIndex] ) {
+            var ranges = cell_renderer.ranges[column.dataIndex];
+            if ( ranges.direction == 'gyr' ) {
+                colors = ["yellow","red"];
+                field_label = "Range (Green/Yellow/Red)";
+            }
+            
+            values = [ranges[colors[0]],ranges[colors[1]]];
+
+            
+            return {
+                xtype:'multislider',
+                fieldLabel: field_label,
+                width: 400,
+                values: values,
+                increment: 5,
+                minValue: 0,
+                maxValue: 100,
+                tipText:function(thumb){ return colors[thumb.index] + ": above " + thumb.value; },
+                listeners: {
+                    changecomplete: function(slider,new_value,thumb){
+                        values[thumb.index] = new_value;
+                        ranges[colors[thumb.index]] = new_value;
+                        cell_renderer.setRanges(column.dataIndex,ranges);
+                        
+                    }
+                }
+            };
+        }
+        
+        return null;
+    },
+    getDescription: function(column) {
         var me = this;
         
         var data_index = column;
@@ -45,30 +82,61 @@ Ext.define('TSDescriptions', {
         "the delta to determine whether scope has been added more often than subtracted. (The first day of <br/>" +
         "the iteration is excluded from this calculation.)",
         
-    number_of_days_in_sprint: "<b>{text}</b> represents the number of full days in the iteration <br/>" +
+    number_of_days_in_sprint: "The number of full days in the iteration " +
             "(Excluding weekends)",
-    health_ratio_estimated: "<b>{text}</b><br/><br/>" +
-        "<b>Description</b><br/><br/>" +
-        "Represents the ratio of work items (stories and defects) that have estimates.<br/><br/>" +
-        "<b>How it is calculated</b><br/><br/>" +
-        "Divide the number of work items (stories and defects) in the iteration that have a plan <br/>" +
-        "estimate that is not null by the total number of items in the iteration multiplied by 100. <br/><br/>" +
-        "<b>Coaching Tip</b><br/><br/>" + 
-        "If there is a very high percentage or stories without estimates, other measures will not <br/>" + 
-        "be meaningful.  This is really only useful for the beginning of an iteration, and perhaps <br/>" + 
-        "for an iteration in early flight, but not for an iteration that has ended.  The idea is to <br/>" + 
-        "catch this early in an iteration so other charts/graphs etc are useful for teams.  A good <br/>" + 
-        "practice is to have a ready backlog as and entrance criteria to an iteration planning session, <br/>" + 
-        "a ready backlog means three things, sized, ranked, and stories are elaborated sufficiently with <br/>" + 
+    health_ratio_estimated: "<h1>Description</h1>" +
+        "Represents the ratio of work items (stories and defects) that have estimates." +
+        "<h1>How it is calculated</h1>" +
+        "Divide the number of work items (stories and defects) in the iteration that have a plan " +
+        "estimate that is not null by the total number of items in the iteration multiplied by 100. " +
+        "<h1>Coaching Tip</h1>" + 
+        "If there is a very high percentage or stories without estimates, other measures will not " + 
+        "be meaningful.  This is really only useful for the beginning of an iteration, and perhaps " + 
+        "for an iteration in early flight, but not for an iteration that has ended.  The idea is to " + 
+        "catch this early in an iteration so other charts/graphs etc are useful for teams.  A good " + 
+        "practice is to have a ready backlog as and entrance criteria to an iteration planning session, " + 
+        "a ready backlog means three things, sized, ranked, and stories are elaborated sufficiently with " + 
         "acceptance criteria to enable conversation and confirmation during planning.",
-    health_end_acceptance_ratio: "<b>{text}</b> is the percentage of items that were accepted before<br/>" +
-            "the iteration ended.",
-    health_ratio_in_progress: "<b>{text}</b> represents the average of the daily percentages of items<br/>" +
-            "marked as In Progress",
-    health_half_accepted_ratio:"<b>{text}</b> represents the point in the iteration where at least 50%<br/>" +
-            "of the scheduled items were accepted.  (If an accepted item rolls back in state, the search for a new<br/>" +
-            "halfway mark restarts.)",
-    health_end_incompletion_ratio:"<b>{text}</b>"
+    health_end_acceptance_ratio: "<h1>Description</h1>" +
+        "Indicates whether teams met their commitment, assuming work items have not been removed from the iteration. " +
+        "<h1>How it is calculated</h1>" +
+        "Divide the plan estimates of the work items in the iteration that were accepted on the last day of the iteration " +
+        "by the total plan estimate of all work items in the iteration.  If analysis type is set to 'counts', the calculation " +
+        "is based on the number of work items, not the plan estimate of the work items.",
+    health_ratio_in_progress: "<h1>Description</h1>" + 
+        "This is an indication of how much work is in progress (WIP).  It is the ratio of the average of " +
+        "the work items in the in-Progress state on a daily basis. " +
+        "<h1>How it is calculated</h1>" +
+        "Divide the plan estimate of all the work items in the 'in-progress' state by the total plan estimate " +
+        "of the work items in the iteration, divided by the number of days.  If the iteration is in-flight, we'll " +
+        "divide by the number of days so far.   If analysis type is set to �counts�, the calculation is based on the " +
+        "count of the work items, not the plan estimate of the work items." +
+        "<h1>Coaching Tip</h1>" +
+        "A high percentage here would mean that there is a high degree of daily WIP on average.  Keeping WIP small, " +
+        "reduces context switching and helps team focus on the most important items to reach acceptance.",
+    health_half_accepted_ratio:"<h1>Description</h1>" +
+        "This is an indication of how well teams are doing with accepting work throughout the iteration.  A high " +
+        "percentage would mean that half of the work is being accepted near the end of the iteration.  100% would mean " +
+        "that on the last day of the iteration, the team has accepted at least 1/2 of the committed work.  For a 10 day " +
+        "iteration, for example, 25% would mean that 1/2 of the committed work was accepted before day 3." +
+        "<h1>How it is calculated</h1>" +
+        "Find the percentage of plan estimate points that are accepted at the end of every day of the sprint and determine " +
+        "what part of the sprint that number passes 50%.  If analysis type is set to �counts�, the calculation is based on " +
+        "the count of the work items, not the plan estimate of the work items.  Should the percentage of points accepted " +
+        "drop below 50%, the point at which 50% acceptance is achieved is reset, until 50% is once again achieved." +
+        "<h1>Coaching Tip</h1>" +
+        "Common causes of work being accepted late are:  Product Owner is absent or at least not actively participating with the " +
+        "team on a daily basis.  Stories do not have clear acceptance criteria.  Teams lack a clear definition of done for stories, " +
+        "to name a few.  A team that tends to accept work items late in the iteration may risk meeting commitment. ",
+    health_end_incompletion_ratio:"<b>{text}</b>",
+    health_end_completion_ratio: "<h1>Description</h1>" +
+            "Represent the ratio of work completed by iteration end.  A low percentage migh imply that there is work planned into an " +
+            "iteration that was left in a schedule state lower than completed." +
+            "<h1>How it is Calculated</h1>" +
+            "Divide the plan estimates of the work items in the iteration that are in a schedule state that is Completed " +
+            "or higher at the end of the last day of the iteration by the total plan estimate of all work items in the iteration. " +
+            "If analysis type is set to 'counts', the calculation is based on the count of the work items, not the plan estimate " +
+            "of the work items."
 
 });
 /*
@@ -109,81 +177,128 @@ Ext.define('Rally.technicalservices.logger',{
  */
  
  Ext.define('TSRenderers', {
-    singleton: true,
-    red: '#ff9999',
-    yellow: '#ffffcc',
-    green: '#ccffcc',
-    health_green_limit: 0.91,
+    extend: 'Ext.Component',
+    config: {
+        red: '#ff9999',
+        yellow: '#ffffcc',
+        green: '#ccffcc',
+        grey: '#D0D0D0',
+        benchmark_green: 90,
+        benchmark_field: 'health_ratio_estimated',
+        ranges: {
+            health_ratio_estimated: { red: 0, yellow: 60, green: 90, direction: 'ryg' },
+            health_ratio_in_progress: { green: 0, yellow: 25, red: 35, direction: 'gyr' },
+            health_half_accepted_ratio: { green: 0, yellow: 50, red: 75, direction: 'gyr' },
+            health_end_completion_ratio: { red: 0, yellow: 95, green: 100, direction: 'ryg' },
+            health_end_acceptance_ratio: { red: 0, yellow: 50, green: 91, direction: 'ryg' }
+        }
+    },                   
+
+    
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
     },
-    estimateHealth: function(value,metaData,record) {
-        
+    constructor: function(config) {
+        this.mergeConfig(config);
+        this.addEvents(
+            /**
+             * @event
+             * Fires after the range marker has changed
+             * @param {TSRenderers} this
+             * @param {Object} new_value
+             */
+            'rangechanged'
+        );
+        this.callParent([this.config]);
+    },
+    getValueForColumn:function(column_data_index,value,metaData,record,row_index,col_index,store,view){
+        var return_value = value;
+        if ( typeof this[column_data_index] === "function" ) {
+            return this[column_data_index](value,metaData,record,row_index,col_index,store,view);
+        } else {
+            return  column_data_index + " has no renderer";
+        }
+    },
+    setRanges: function(column_data_index,ranges) {
+        this.ranges[column_data_index] = ranges;
+        console.log('comparing',column_data_index, this.benchmark_field);
+        if ( column_data_index == this.benchmark_field ) {
+            this.benchmark_green = ranges.green;
+        }
+        this.fireEvent('rangechanged',this,ranges);
+    },
+    shouldBeGrey: function(record){
+        var check_percent = record.get(this.benchmark_field) * 100;
+        return ( check_percent < this.benchmark_green && record.get('metric') != 'count');
+    },
+    health_ratio_estimated: function(value,metaData,record){
+        if (record.get('metric')=='count'){
+            return "N/A";
+        }
         if ( value < 0 ) {
             return " ";
         }
-        
-        if (record.get('metric') == 'count' ) {
-            return "N/A";
-        }
-        
         var percent = parseInt( 100 * value, 10 );
-        var color = TSRenderers.green;
-        if ( value < TSRenderers.health_green_limit ) {
-            color = TSRenderers.yellow;
+        var ranges = this.ranges.health_ratio_estimated;
+        
+        var color = this.red;
+        if ( percent > ranges.yellow ) {
+            color = this.yellow;
         }
-        if ( value < 0.61 ) {
-            color = TSRenderers.red;
+        if ( percent > ranges.green ) {
+            color = this.green;
         }
-        metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ percent + "%</div>";
+        
+        metaData.style = 'background-color:'+color;
+        return percent + "%";
     },
-    inProgressHealth: function(value,metaData,record) {
-        var color = TSRenderers.green;
-
+    health_ratio_in_progress: function(value,metaData,record) {
+        var color = this.green;
         var percent = parseInt( 100 * value, 10 );
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        var ranges = this.ranges.health_ratio_in_progress;
+        
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
             if ( value < 0 ) {
                 return " ";
             }
-            if ( percent > 25 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent > 35 ) {
-                color = TSRenderers.red;
+            if ( percent > ranges.red ) {
+                color = this.red;
             }
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ percent + "%</div>";
+        return percent + "%";
     },
-    halfAcceptedHealth: function(value,metaData,record) {
+    health_half_accepted_ratio: function(value,metaData,record) {
+        var ranges = this.ranges.health_half_accepted_ratio;
+        var color = this.green;
+        
         if ( value < 0 ) {
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
         var accomplished_date = record.get('health_half_accepted_date');
-        var text = TSRenderers.shortDate(accomplished_date) + " (" + percent + "%)";
+        var text = this.shortDate(accomplished_date) + " (" + percent + "%)";
         
-        
-        var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
-            if ( percent > 50 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent > 75 ) {
-                color = TSRenderers.red;
+            if ( percent > ranges.red ) {
+                color = this.red;
             }
-
         }
         if ( percent === 200 ) {
             text = "Never";
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+        return text;
     },
     incompletionHealth: function(value,metaData,record) {
         if ( value < 0 ) {
@@ -193,8 +308,8 @@ Ext.define('Rally.technicalservices.logger',{
         var text = percent + "%";
         
         var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
             if ( percent > 9 ) {
                 color = TSRenderers.yellow;
@@ -210,22 +325,23 @@ Ext.define('Rally.technicalservices.logger',{
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },
-    completionHealth: function(value,metaData,record) {
+    health_end_completion_ratio: function(value,metaData,record) {
         if ( value < 0 ) {
             return " ";
         }
+        var ranges = this.ranges.health_end_completion_ratio;
         var percent = parseInt( 100 * value, 10 );
         var text = percent + "%";
         
-        var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        var color = this.red;
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
-            if ( percent < 100 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent < 95 ) {
-                color = TSRenderers.red;
+            if ( percent >= ranges.green ) {
+                color = this.green;
             }
             if ( percent === 200 ) {
                 color = "white";
@@ -233,25 +349,26 @@ Ext.define('Rally.technicalservices.logger',{
             }
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+        return text;
     },
-    acceptanceHealth: function(value,metaData,record) {
+    health_end_acceptance_ratio: function(value,metaData,record) {
         if ( value < 0 ) {
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
         var text = percent + "%";
+        var ranges = this.ranges.health_end_acceptance_ratio;
         
-        var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        var color = this.red;
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
             
-            if ( percent < 91 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent < 50 ) {
-                color = TSRenderers.red;
+            if ( percent >= ranges.green ) {
+                color = this.green;
             }
             if ( percent === 200 ) {
                 color = "white";
@@ -259,7 +376,7 @@ Ext.define('Rally.technicalservices.logger',{
             }
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+        return text;
     },
     churnHealth: function(value,metaData,record) {
         
@@ -272,7 +389,7 @@ Ext.define('Rally.technicalservices.logger',{
         }
         
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -286,7 +403,7 @@ Ext.define('Rally.technicalservices.logger',{
         }
             
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -302,7 +419,7 @@ Ext.define('Rally.technicalservices.logger',{
             display_value = "<img src='/slm/mashup/1.11/images/plus.gif' title='up'>";
         }
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + display_value + "</div>";
@@ -1324,43 +1441,83 @@ Ext.define('CustomApp', {
      * Given an array of projects, make a grid
      */
     _makeGrid: function(store) {
-        
+        var me = this;
         if ( this.grid ) { this.grid.destroy(); }
+        
+        var cell_renderer = Ext.create('TSRenderers',{
+            listeners: {
+                rangechanged: function(renderer,new_ranges){
+                    if ( me.grid ) {
+                        me.grid.refresh();
+                    }
+                },
+                scope: this
+            }
+        });
+        
+        var render_cell = function(value,metaData,record,row_index,col_index,store,view){
+            var column = columns[col_index];
+            var column_data_index = column.dataIndex;
+            
+            return cell_renderer.getValueForColumn(column_data_index,value,metaData,record,row_index,col_index,store,view);
+        }
         
         var column_listeners = {
             scope: this,
             headerclick: function( ct, column, evt, target_element, eOpts ) {
-                if (this.popover){this.popover.destroy();}
-                this.popover = Ext.create('Rally.ui.popover.Popover',{
-                    target: Ext.get(target_element),
+                if (this.dialog){this.dialog.destroy();}
+                this.dialog = Ext.create('Rally.ui.dialog.Dialog',{
+                    defaults: { padding: 5, margin: 5 },
+                    closable: true,
+                    draggable: true,
+                    title: column.text,
                     items: [{
                         cls: 'ts_popover_description',
                         xtype:'container',
-                        html:TSDescriptions.get_description(column)
-                    }]
+                        html:TSDescriptions.getDescription(column)
+                    },
+                    TSDescriptions.getAdjustor(column,cell_renderer)
+                    ]
                 });
-                this.popover.show();
+                this.dialog.show();
+//                if (this.popover){this.popover.destroy();}
+//                this.popover = Ext.create('Rally.ui.popover.Popover',{
+//                    target: Ext.get(target_element),
+//                    cls: 'ts_popover',
+//                    items: [{
+//                        cls: 'ts_popover_description',
+//                        xtype:'container',
+//                        html:TSDescriptions.getDescription(column)
+//                    },
+//                    TSDescriptions.getAdjustor(column,cell_renderer)
+//                    ]
+//                });
+//                this.popover.show();
             }
         };
+        
+        var columns = [
+            {text:'Iteration',dataIndex:'iteration_name',flex: 2},
+            {text:'Start Date',dataIndex:'iteration_start_date',renderer:cell_renderer.shortDate},
+            {text:'End Date',dataIndex:'iteration_end_date',renderer:cell_renderer.shortDate},
+            {text:'# Days',dataIndex:'number_of_days_in_sprint',listeners: column_listeners},
+            {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer:render_cell,listeners: column_listeners},
+            {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer:render_cell,listeners: column_listeners},
+            {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:render_cell,listeners: column_listeners},
+            {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:render_cell,listeners: column_listeners},
+            {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:render_cell,listeners: column_listeners}/*,
+            {text:'Churn',dataIndex:'health_churn',renderer:cell_renderer.churnHealth,listeners: column_listeners },
+            {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:cell_renderer.churnDirection,listeners: column_listeners},
+            {text:'Task Churn',dataIndex:'health_churn_task',renderer:cell_renderer.churnTaskHealth,listeners: column_listeners}
+            */
+        ];
+            
+
         this.grid = Ext.create('Rally.ui.grid.Grid',{
             store: store,
             height: 400,
             sortableColumns: false,
-            columnCfgs: [
-                {text:'Iteration',dataIndex:'iteration_name',flex: 2},
-                {text:'Start Date',dataIndex:'iteration_start_date',renderer:TSRenderers.shortDate},
-                {text:'End Date',dataIndex:'iteration_end_date',renderer:TSRenderers.shortDate},
-                {text:'# Days',dataIndex:'number_of_days_in_sprint',listeners: column_listeners},
-                {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer: TSRenderers.estimateHealth,listeners: column_listeners},
-                {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer: TSRenderers.inProgressHealth,listeners: column_listeners},
-                {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:TSRenderers.halfAcceptedHealth,listeners: column_listeners},
-                {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:TSRenderers.completionHealth,listeners: column_listeners},
-                {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:TSRenderers.acceptanceHealth,listeners: column_listeners},
-                {text:'Churn',dataIndex:'health_churn',renderer:TSRenderers.churnHealth,listeners: column_listeners },
-                {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners},
-                {text:'Task Churn',dataIndex:'health_churn_task',renderer:TSRenderers.churnTaskHealth,listeners: column_listeners}
-                
-            ]
+            columnCfgs: columns
         });
         this.down('#grid_box').add(this.grid);
         this.getEl().unmask();
@@ -1377,7 +1534,12 @@ Ext.define('CustomApp', {
 
 .ts_popover_description {
     background-color: white;
-    padding: 3px
+    padding: 3px;
+    width: 400px;
+}
+
+.ts_popover_description h1 {
+    margin: 3px 0px;
 }
     </style>
 

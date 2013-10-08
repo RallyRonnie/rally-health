@@ -16,9 +16,11 @@
             health_ratio_estimated: { red: 0, yellow: 60, green: 90, direction: 'ryg' },
             health_ratio_in_progress: { green: 0, yellow: 25, red: 35, direction: 'gyr' },
             health_half_accepted_ratio: { green: 0, yellow: 50, red: 75, direction: 'gyr' },
-            health_end_completion_ratio: { red: 0, yellow: 95, green: 100, direction: 'ryg' }
+            health_end_completion_ratio: { red: 0, yellow: 95, green: 100, direction: 'ryg' },
+            health_end_acceptance_ratio: { red: 0, yellow: 50, green: 91, direction: 'ryg' }
         }
-    },
+    },                   
+
     
     defaultF: function(value,metaData,record,rowIndex,colIndex,store,view){
         return value;
@@ -176,23 +178,24 @@
         metaData.style = "background-color: " + color;
         return text;
     },
-    acceptanceHealth: function(value,metaData,record) {
+    health_end_acceptance_ratio: function(value,metaData,record) {
         if ( value < 0 ) {
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
         var text = percent + "%";
+        var ranges = this.ranges.health_end_acceptance_ratio;
         
-        var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
+        var color = this.red;
+        if ( this.shouldBeGrey(record) ) {
             color = this.grey;
         } else {
             
-            if ( percent < 91 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent < 50 ) {
-                color = TSRenderers.red;
+            if ( percent >= ranges.green ) {
+                color = this.green;
             }
             if ( percent === 200 ) {
                 color = "white";
@@ -200,7 +203,7 @@
             }
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+        return text;
     },
     churnHealth: function(value,metaData,record) {
         
