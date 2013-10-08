@@ -113,6 +113,14 @@ Ext.define('TSDescriptions', {
         "Common causes of work being accepted late are:  Product Owner is absent or at least not actively participating with the " +
         "team on a daily basis.  Stories do not have clear acceptance criteria.  Teams lack a clear definition of done for stories, " +
         "to name a few.  A team that tends to accept work items late in the iteration may risk meeting commitment. ",
-    health_end_incompletion_ratio:"<b>{text}</b>"
+    health_end_incompletion_ratio:"<b>{text}</b>",
+    health_end_completion_ratio: "<h1>Description</h1>" +
+            "Represent the ratio of work completed by iteration end.  A low percentage migh imply that there is work planned into an " +
+            "iteration that was left in a schedule state lower than completed." +
+            "<h1>How it is Calculated</h1>" +
+            "Divide the plan estimates of the work items in the iteration that are in a schedule state that is Completed " +
+            "or higher at the end of the last day of the iteration by the total plan estimate of all work items in the iteration. " +
+            "If analysis type is set to 'counts', the calculation is based on the count of the work items, not the plan estimate " +
+            "of the work items."
 
 });
