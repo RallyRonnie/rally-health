@@ -395,43 +395,83 @@ Ext.define('CustomApp', {
      * Given an array of projects, make a grid
      */
     _makeGrid: function(store) {
-        
+        var me = this;
         if ( this.grid ) { this.grid.destroy(); }
+        
+        var cell_renderer = Ext.create('TSRenderers',{
+            listeners: {
+                rangechanged: function(renderer,new_ranges){
+                    if ( me.grid ) {
+                        me.grid.refresh();
+                    }
+                },
+                scope: this
+            }
+        });
+        
+        var render_cell = function(value,metaData,record,row_index,col_index,store,view){
+            var column = columns[col_index];
+            var column_data_index = column.dataIndex;
+            
+            return cell_renderer.getValueForColumn(column_data_index,value,metaData,record,row_index,col_index,store,view);
+        }
         
         var column_listeners = {
             scope: this,
             headerclick: function( ct, column, evt, target_element, eOpts ) {
-                if (this.popover){this.popover.destroy();}
-                this.popover = Ext.create('Rally.ui.popover.Popover',{
-                    target: Ext.get(target_element),
+                if (this.dialog){this.dialog.destroy();}
+                this.dialog = Ext.create('Rally.ui.dialog.Dialog',{
+                    defaults: { padding: 5, margin: 5 },
+                    closable: true,
+                    draggable: true,
+                    title: column.text,
                     items: [{
                         cls: 'ts_popover_description',
                         xtype:'container',
-                        html:TSDescriptions.get_description(column)
-                    }]
+                        html:TSDescriptions.getDescription(column)
+                    },
+                    TSDescriptions.getAdjustor(column,cell_renderer)
+                    ]
                 });
-                this.popover.show();
+                this.dialog.show();
+//                if (this.popover){this.popover.destroy();}
+//                this.popover = Ext.create('Rally.ui.popover.Popover',{
+//                    target: Ext.get(target_element),
+//                    cls: 'ts_popover',
+//                    items: [{
+//                        cls: 'ts_popover_description',
+//                        xtype:'container',
+//                        html:TSDescriptions.getDescription(column)
+//                    },
+//                    TSDescriptions.getAdjustor(column,cell_renderer)
+//                    ]
+//                });
+//                this.popover.show();
             }
         };
+        
+        var columns = [
+            {text:'Iteration',dataIndex:'iteration_name',flex: 2},
+            {text:'Start Date',dataIndex:'iteration_start_date',renderer:cell_renderer.shortDate},
+            {text:'End Date',dataIndex:'iteration_end_date',renderer:cell_renderer.shortDate},
+            {text:'# Days',dataIndex:'number_of_days_in_sprint',listeners: column_listeners},
+            {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer:render_cell,listeners: column_listeners},
+            {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer:render_cell,listeners: column_listeners}/*,
+            {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:cell_renderer.halfAcceptedHealth,listeners: column_listeners},
+            {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:cell_renderer.completionHealth,listeners: column_listeners},
+            {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:cell_renderer.acceptanceHealth,listeners: column_listeners},
+            {text:'Churn',dataIndex:'health_churn',renderer:cell_renderer.churnHealth,listeners: column_listeners },
+            {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:cell_renderer.churnDirection,listeners: column_listeners},
+            {text:'Task Churn',dataIndex:'health_churn_task',renderer:cell_renderer.churnTaskHealth,listeners: column_listeners}
+            */
+        ];
+            
+
         this.grid = Ext.create('Rally.ui.grid.Grid',{
             store: store,
             height: 400,
             sortableColumns: false,
-            columnCfgs: [
-                {text:'Iteration',dataIndex:'iteration_name',flex: 2},
-                {text:'Start Date',dataIndex:'iteration_start_date',renderer:TSRenderers.shortDate},
-                {text:'End Date',dataIndex:'iteration_end_date',renderer:TSRenderers.shortDate},
-                {text:'# Days',dataIndex:'number_of_days_in_sprint',listeners: column_listeners},
-                {text:'Estimation Ratio (Current)',dataIndex:'health_ratio_estimated',renderer: TSRenderers.estimateHealth,listeners: column_listeners},
-                {text:'Average Daily In-Progress',dataIndex:'health_ratio_in_progress',renderer: TSRenderers.inProgressHealth,listeners: column_listeners},
-                {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:TSRenderers.halfAcceptedHealth,listeners: column_listeners},
-                {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:TSRenderers.completionHealth,listeners: column_listeners},
-                {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:TSRenderers.acceptanceHealth,listeners: column_listeners},
-                {text:'Churn',dataIndex:'health_churn',renderer:TSRenderers.churnHealth,listeners: column_listeners },
-                {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:TSRenderers.churnDirection,listeners: column_listeners},
-                {text:'Task Churn',dataIndex:'health_churn_task',renderer:TSRenderers.churnTaskHealth,listeners: column_listeners}
-                
-            ]
+            columnCfgs: columns
         });
         this.down('#grid_box').add(this.grid);
         this.getEl().unmask();
