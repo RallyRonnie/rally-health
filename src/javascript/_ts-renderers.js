@@ -9,11 +9,13 @@
         red: '#ff9999',
         yellow: '#ffffcc',
         green: '#ccffcc',
+        grey: '#D0D0D0',
         benchmark_green: 90,
         benchmark_field: 'health_ratio_estimated',
         ranges: {
             health_ratio_estimated: { red: 0, yellow: 60, green: 90, direction: 'ryg' },
-            health_ratio_in_progress: { green: 0, yellow: 25, red: 35, direction: 'gyr' }
+            health_ratio_in_progress: { green: 0, yellow: 25, red: 35, direction: 'gyr' },
+            health_half_accepted_ratio: { green: 0, yellow: 50, red: 75, direction: 'gyr' }
         }
     },
     
@@ -80,7 +82,7 @@
         var ranges = this.ranges.health_ratio_in_progress;
         
         if ( this.shouldBeGrey(record) ) {
-            color = '#D0D0D0';
+            color = this.grey;
         } else {
             if ( value < 0 ) {
                 return " ";
@@ -95,32 +97,32 @@
         metaData.style = "background-color: " + color;
         return percent + "%";
     },
-    halfAcceptedHealth: function(value,metaData,record) {
+    health_half_accepted_ratio: function(value,metaData,record) {
+        var ranges = this.ranges.health_half_accepted_ratio;
+        var color = this.green;
+        
         if ( value < 0 ) {
             return " ";
         }
         var percent = parseInt( 100 * value, 10 );
         var accomplished_date = record.get('health_half_accepted_date');
-        var text = TSRenderers.shortDate(accomplished_date) + " (" + percent + "%)";
+        var text = this.shortDate(accomplished_date) + " (" + percent + "%)";
         
-        
-        var color = TSRenderers.green;
-        if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+        if ( this.shouldBeGrey(record) ) {
+            color = this.grey;
         } else {
-            if ( percent > 50 ) {
-                color = TSRenderers.yellow;
+            if ( percent > ranges.yellow ) {
+                color = this.yellow;
             }
-            if ( percent > 75 ) {
-                color = TSRenderers.red;
+            if ( percent > ranges.red ) {
+                color = this.red;
             }
-
         }
         if ( percent === 200 ) {
             text = "Never";
         }
         metaData.style = "background-color: " + color;
-        return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
+        return text;
     },
     incompletionHealth: function(value,metaData,record) {
         if ( value < 0 ) {
@@ -131,7 +133,7 @@
         
         var color = TSRenderers.green;
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         } else {
             if ( percent > 9 ) {
                 color = TSRenderers.yellow;
@@ -156,7 +158,7 @@
         
         var color = TSRenderers.green;
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         } else {
             if ( percent < 100 ) {
                 color = TSRenderers.yellow;
@@ -181,7 +183,7 @@
         
         var color = TSRenderers.green;
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         } else {
             
             if ( percent < 91 ) {
@@ -209,7 +211,7 @@
         }
         
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -223,7 +225,7 @@
         }
             
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + text + "</div>";
@@ -239,7 +241,7 @@
             display_value = "<img src='/slm/mashup/1.11/images/plus.gif' title='up'>";
         }
         if ( record.get('health_ratio_estimated') < TSRenderers.health_green_limit  && record.get('metric') != 'count') {
-            color = '#D0D0D0';
+            color = this.grey;
         }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + ";'>" + display_value + "</div>";

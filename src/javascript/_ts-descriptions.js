@@ -99,9 +99,20 @@ Ext.define('TSDescriptions', {
         "<h1>Coaching Tip</h1>" +
         "A high percentage here would mean that there is a high degree of daily WIP on average.  Keeping WIP small, " +
         "reduces context switching and helps team focus on the most important items to reach acceptance.",
-    health_half_accepted_ratio:"<b>{text}</b> represents the point in the iteration where at least 50%<br/>" +
-            "of the scheduled items were accepted.  (If an accepted item rolls back in state, the search for a new<br/>" +
-            "halfway mark restarts.)",
+    health_half_accepted_ratio:"<h1>Description</h1>" +
+        "This is an indication of how well teams are doing with accepting work throughout the iteration.  A high " +
+        "percentage would mean that half of the work is being accepted near the end of the iteration.  100% would mean " +
+        "that on the last day of the iteration, the team has accepted at least 1/2 of the committed work.  For a 10 day " +
+        "iteration, for example, 25% would mean that 1/2 of the committed work was accepted before day 3." +
+        "<h1>How it is calculated</h1>" +
+        "Find the percentage of plan estimate points that are accepted at the end of every day of the sprint and determine " +
+        "what part of the sprint that number passes 50%.  If analysis type is set to “counts”, the calculation is based on " +
+        "the count of the work items, not the plan estimate of the work items.  Should the percentage of points accepted " +
+        "drop below 50%, the point at which 50% acceptance is achieved is reset, until 50% is once again achieved." +
+        "<h1>Coaching Tip</h1>" +
+        "Common causes of work being accepted late are:  Product Owner is absent or at least not actively participating with the " +
+        "team on a daily basis.  Stories do not have clear acceptance criteria.  Teams lack a clear definition of done for stories, " +
+        "to name a few.  A team that tends to accept work items late in the iteration may risk meeting commitment. ",
     health_end_incompletion_ratio:"<b>{text}</b>"
 
 });
