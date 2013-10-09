@@ -151,6 +151,10 @@
                 text = "No Data";
             }
         }
+        if ( percent == 200 ) {
+            color = "white";
+            text = "No Data";
+        }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },
@@ -172,10 +176,13 @@
             if ( percent >= ranges.green ) {
                 color = this.green;
             }
-            if ( percent === 200 ) {
+            
+            if ( percent == 200 ) {
                 color = "white";
-                text = "No Data";
             }
+        }
+        if ( percent == 200 ) {
+            text = "No Data";
         }
         metaData.style = "background-color: " + color;
         return text;
@@ -199,10 +206,13 @@
             if ( percent >= ranges.green ) {
                 color = this.green;
             }
-            if ( percent === 200 ) {
+            if ( percent == 200 ) {
                 color = "white";
-                text = "No Data";
             }
+
+        }
+        if ( percent == 200 ) {
+            text = "No Data";
         }
         metaData.style = "background-color: " + color;
         return text;

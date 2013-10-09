@@ -249,7 +249,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
 
         if (!all_hash || !accepted_hash) { 
-            this.set('health_half_accepted_ratio',0); 
+            this.set('health_half_accepted_ratio',2); 
         } else {
             var day_index = -1;
             var day_counter = 0;
@@ -310,9 +310,17 @@ Ext.define('Rally.technicalservices.ProjectModel',{
             if ( completion_hash ) {
                 last_completed = completion_hash[last_date] || 0;
             }
-            var ratio = 1 - ( (last_completed+last_accepted)/last_total );
+            
+            
+            var ratio = 2;
+            if ( last_total > 0 ) {
+                ratio = 1 - ( (last_completed+last_accepted)/last_total );
+            }
             ratio = Ext.util.Format.number(ratio,"0.00");
-            var inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
+            var inverse_ratio = 2;
+            if ( last_total > 0 ) {
+                inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
+            }
             
             this.set('health_end_incompletion_ratio',ratio);
             this.set('health_end_completion_ratio',inverse_ratio);
@@ -330,7 +338,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
         
         if (!all_hash) { 
-            this.set('health_end_acceptance_ratio',0); 
+            this.set('health_end_acceptance_ratio',2); 
         } else {
             var card_dates = Ext.Object.getKeys(all_hash);
             var last_date = card_dates.pop();
@@ -342,7 +350,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                 last_accepted = accepted_hash[last_date] || 0;
             }
             
-            var ratio = last_accepted/last_total;
+            var ratio = 2;
+            if ( last_total > 0 ) {
+                ratio = last_accepted/last_total;
+            }
             ratio = Ext.util.Format.number(ratio,"0.00");
             
             this.set('health_end_acceptance_ratio',ratio);

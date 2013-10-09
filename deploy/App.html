@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Mon Oct 07 2013 21:12:56 GMT-0700 (PDT) -->
+    <!--  Build Date: Tue Oct 08 2013 16:57:23 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -337,6 +337,10 @@ Ext.define('Rally.technicalservices.logger',{
                 text = "No Data";
             }
         }
+        if ( percent == 200 ) {
+            color = "white";
+            text = "No Data";
+        }
         metaData.style = "background-color: " + color;
         return "<div style='text-align:center;background-color:" + color + "'>"+ text + "</div>";
     },
@@ -358,10 +362,13 @@ Ext.define('Rally.technicalservices.logger',{
             if ( percent >= ranges.green ) {
                 color = this.green;
             }
-            if ( percent === 200 ) {
+            
+            if ( percent == 200 ) {
                 color = "white";
-                text = "No Data";
             }
+        }
+        if ( percent == 200 ) {
+            text = "No Data";
         }
         metaData.style = "background-color: " + color;
         return text;
@@ -385,10 +392,13 @@ Ext.define('Rally.technicalservices.logger',{
             if ( percent >= ranges.green ) {
                 color = this.green;
             }
-            if ( percent === 200 ) {
+            if ( percent == 200 ) {
                 color = "white";
-                text = "No Data";
             }
+
+        }
+        if ( percent == 200 ) {
+            text = "No Data";
         }
         metaData.style = "background-color: " + color;
         return text;
@@ -831,7 +841,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
 
         if (!all_hash || !accepted_hash) { 
-            this.set('health_half_accepted_ratio',0); 
+            this.set('health_half_accepted_ratio',2); 
         } else {
             var day_index = -1;
             var day_counter = 0;
@@ -892,9 +902,17 @@ Ext.define('Rally.technicalservices.ProjectModel',{
             if ( completion_hash ) {
                 last_completed = completion_hash[last_date] || 0;
             }
-            var ratio = 1 - ( (last_completed+last_accepted)/last_total );
+            
+            
+            var ratio = 2;
+            if ( last_total > 0 ) {
+                ratio = 1 - ( (last_completed+last_accepted)/last_total );
+            }
             ratio = Ext.util.Format.number(ratio,"0.00");
-            var inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
+            var inverse_ratio = 2;
+            if ( last_total > 0 ) {
+                inverse_ratio = Ext.util.Format.number(1-ratio,"0.00");
+            }
             
             this.set('health_end_incompletion_ratio',ratio);
             this.set('health_end_completion_ratio',inverse_ratio);
@@ -912,7 +930,7 @@ Ext.define('Rally.technicalservices.ProjectModel',{
         var accepted_hash = this.getDailyPlanEstimateTotalByState("Accepted");
         
         if (!all_hash) { 
-            this.set('health_end_acceptance_ratio',0); 
+            this.set('health_end_acceptance_ratio',2); 
         } else {
             var card_dates = Ext.Object.getKeys(all_hash);
             var last_date = card_dates.pop();
@@ -924,7 +942,10 @@ Ext.define('Rally.technicalservices.ProjectModel',{
                 last_accepted = accepted_hash[last_date] || 0;
             }
             
-            var ratio = last_accepted/last_total;
+            var ratio = 2;
+            if ( last_total > 0 ) {
+                ratio = last_accepted/last_total;
+            }
             ratio = Ext.util.Format.number(ratio,"0.00");
             
             this.set('health_end_acceptance_ratio',ratio);
@@ -1359,6 +1380,7 @@ Ext.define('CustomApp', {
                 load: function(store,records){
                     if ( records.length === 0 ) {
                         me.logger.log(this, project.get('Name'), "No cumulative flow data found for project ");
+                        project.setIterationCumulativeFlowData(records);
                     } else {
                         me.logger.log(this,project.get('Name'),'CFD',records);
                         project.setIterationCumulativeFlowData(records);

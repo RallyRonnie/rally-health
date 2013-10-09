@@ -298,6 +298,7 @@ Ext.define('CustomApp', {
                 load: function(store,records){
                     if ( records.length === 0 ) {
                         me.logger.log(this, project.get('Name'), "No cumulative flow data found for project ");
+                        project.setIterationCumulativeFlowData(records);
                     } else {
                         me.logger.log(this,project.get('Name'),'CFD',records);
                         project.setIterationCumulativeFlowData(records);

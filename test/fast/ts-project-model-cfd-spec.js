@@ -54,6 +54,51 @@ describe("Fast Project Model tests for ICFD health",function(){
     });
     
     describe("When adding ICFD data to projects calculate daily totals",function(){
+        it('should provide the defaults when no CFD provided',function(){
+            var project = Ext.create('Rally.technicalservices.ProjectModel',{
+                Name: 'Child',
+                ObjectID: 1235
+            });
+            project.setIterationCumulativeFlowData([]);
+            
+            expect(project.get('health_ratio_in_progress')).toEqual(0);
+            expect(project.get('health_half_accepted_ratio')).toEqual(2);
+            expect(project.get('health_half_accepted_date')).toEqual(null);
+            expect(project.get('health_end_incompletion_ratio')).toEqual(2);
+            expect(project.get('health_end_acceptance_ratio')).toEqual(2);
+        });
+        
+        it('should provide the defaults when CFD has no sizes provided',function(){
+            var project = Ext.create('Rally.technicalservices.ProjectModel',{
+                Name: 'Child',
+                ObjectID: 1235
+            });
+            // Day 1
+            var accepted_day_1 = Ext.create('mockCFD',{ CardState:'Accepted', CardEstimateTotal: 0, CreationDate: monday });
+            var in_p_day_1 = Ext.create('mockCFD',{ CardState:'In-Progress', CardEstimateTotal: 0, CreationDate: monday });
+            var defined_day_1 = Ext.create('mockCFD',{ CardState:'Defined', CardEstimateTotal: 0, CreationDate: monday });
+            // Day 2
+            var accepted_day_2 = Ext.create('mockCFD',{ CardState:'Accepted', CardEstimateTotal: 0, CreationDate: tuesday });
+            var in_p_day_2 = Ext.create('mockCFD',{ CardState:'In-Progress', CardEstimateTotal: 0, CreationDate: tuesday });
+            var defined_day_2 = Ext.create('mockCFD',{ CardState:'Defined', CardEstimateTotal: 0, CreationDate: tuesday });
+            // Day 3 
+            var accepted_day_3 = Ext.create('mockCFD',{ CardState:'Accepted', CardEstimateTotal: 0, CreationDate: wednesday });
+            var in_p_day_3 = Ext.create('mockCFD',{ CardState:'In-Progress', CardEstimateTotal: 0, CreationDate: wednesday });
+            var defined_day_3 = Ext.create('mockCFD',{ CardState:'Defined', CardEstimateTotal: 0, CreationDate: wednesday });
+            
+            project.setIterationCumulativeFlowData([
+                accepted_day_1,in_p_day_1,defined_day_1,
+                accepted_day_2,in_p_day_2,defined_day_2,
+                accepted_day_3,in_p_day_3,defined_day_3
+            ]);
+            
+            expect(project.get('health_ratio_in_progress')).toEqual(0);
+            expect(project.get('health_half_accepted_ratio')).toEqual(2);
+            expect(project.get('health_half_accepted_date')).toEqual(null);
+            expect(project.get('health_end_completion_ratio')).toEqual(2);
+            expect(project.get('health_end_acceptance_ratio')).toEqual(2);
+        });
+        
         it('should determine total daily plan estimates',function() {
             var project = Ext.create('Rally.technicalservices.ProjectModel',{
                 Name: 'Child',
