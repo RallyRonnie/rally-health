@@ -50,7 +50,6 @@
     },
     setRanges: function(column_data_index,ranges) {
         this.ranges[column_data_index] = ranges;
-        console.log('comparing',column_data_index, this.benchmark_field);
         if ( column_data_index == this.benchmark_field ) {
             this.benchmark_green = ranges.green;
         }

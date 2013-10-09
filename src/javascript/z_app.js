@@ -8,6 +8,7 @@ Ext.define('CustomApp', {
     ],
     _project_store: null,
     launch: function() {
+        var me = this;
         this._projectIsParentSwitch(
             function() { 
                 // if it's a parent, do this:
@@ -19,15 +20,31 @@ Ext.define('CustomApp', {
             }, 
             function(){ 
                 // if it's not a parent, do this:
-                this.number_of_iterations = 3;
-                this._addIterationCountSelector();
-                this._addMetricSelector();
+                if ( this.getAppId() ) {
+                    Rally.data.PreferenceManager.load({
+                        appID: this.getAppId(),
+                        success: function(prefs) {
+                            me.logger.log(me,"prefs",prefs);
+                            if ( prefs && prefs['rally-tech-services-ranges'] ) {
+                                me.saved_ranges = Ext.JSON.decode(prefs['rally-tech-services-ranges']);
+                                me.logger.log(me,"saved",me.saved_ranges);
+                            }
+                            me._definePageDisplay();
+                        }
+                    });
+                } else {
+                    me.logger.log(this, "No APP ID, so preferences will not be saved");
+                    this._definePageDisplay();
+                }
+
             });
         
-//        if ( this._contextIsParentProject() ) {
-//        } else {
 
-//        }
+    },
+    _definePageDisplay: function() {
+        this.number_of_iterations = 3;
+        this._addIterationCountSelector();
+        this._addMetricSelector();
     },
     _projectIsParentSwitch: function(is_parent_callback, is_not_parent_callback) {
         var project_oid = this.getContext().getProject().ObjectID;
@@ -399,16 +416,33 @@ Ext.define('CustomApp', {
         var me = this;
         if ( this.grid ) { this.grid.destroy(); }
         
+        
         var cell_renderer = Ext.create('TSRenderers',{
             listeners: {
                 rangechanged: function(renderer,new_ranges){
                     if ( me.grid ) {
+                        me.logger.log(this,this.getAppId(),renderer.ranges);
+                        Rally.data.PreferenceManager.update({
+                            appID: this.getAppId(),
+                            settings: {
+                                'rally-tech-services-ranges': Ext.JSON.encode(renderer.ranges)
+                            },
+                            success: function(updatedRecords, notUpdatedRecords) {
+                                me.logger.log(this,"successfully saved preference 'rally-tech-services-ranges'");
+                            }
+                        });
                         me.grid.refresh();
                     }
                 },
                 scope: this
             }
         });
+        // apply saved values
+        if (me.saved_ranges) {
+            Ext.Object.each(me.saved_ranges,function(key,value){
+                cell_renderer.setRanges(key,value); 
+            });
+        }
         
         var render_cell = function(value,metaData,record,row_index,col_index,store,view){
             var column = columns[col_index];
