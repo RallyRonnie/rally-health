@@ -3,7 +3,7 @@
 <head>
     <title>Health Check</title>
     <!--  (c) 2013 Rally Software Development Corp.  All Rights Reserved. -->
-    <!--  Build Date: Tue Oct 08 2013 17:35:00 GMT-0700 (PDT) -->
+    <!--  Build Date: Mon Oct 14 2013 16:11:05 GMT-0700 (PDT) -->
     <script type="text/javascript" src="/apps/2.0rc1/sdk.js"></script>
 
     <script type="text/javascript">
@@ -1082,6 +1082,7 @@ Ext.define('Rally.technicalservices.ProjectStore',{
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
+    use_saved_ranges: false,
     logger: new Rally.technicalservices.logger(),
     items: [ 
         { xtype:'container',itemId:'selector_box', padding: 5, defaults: { padding: 5 }, layout: { type:'hbox'} }, 
@@ -1101,7 +1102,7 @@ Ext.define('CustomApp', {
             }, 
             function(){ 
                 // if it's not a parent, do this:
-                if ( this.getAppId() ) {
+                if ( this.getAppId() && this.use_saved_ranges ) {
                     Rally.data.PreferenceManager.load({
                         appID: this.getAppId(),
                         success: function(prefs) {
@@ -1501,7 +1502,7 @@ Ext.define('CustomApp', {
         var cell_renderer = Ext.create('TSRenderers',{
             listeners: {
                 rangechanged: function(renderer,new_ranges){
-                    if ( me.grid ) {
+                    if ( me.use_saved_ranges ) {
                         me.logger.log(this,this.getAppId(),renderer.ranges);
                         Rally.data.PreferenceManager.update({
                             appID: this.getAppId(),
@@ -1512,6 +1513,8 @@ Ext.define('CustomApp', {
                                 me.logger.log(this,"successfully saved preference 'rally-tech-services-ranges'");
                             }
                         });
+                    }
+                    if ( me.grid ) {
                         me.grid.refresh();
                     }
                 },
@@ -1550,19 +1553,7 @@ Ext.define('CustomApp', {
                     ]
                 });
                 this.dialog.show();
-//                if (this.popover){this.popover.destroy();}
-//                this.popover = Ext.create('Rally.ui.popover.Popover',{
-//                    target: Ext.get(target_element),
-//                    cls: 'ts_popover',
-//                    items: [{
-//                        cls: 'ts_popover_description',
-//                        xtype:'container',
-//                        html:TSDescriptions.getDescription(column)
-//                    },
-//                    TSDescriptions.getAdjustor(column,cell_renderer)
-//                    ]
-//                });
-//                this.popover.show();
+
             }
         };
         
@@ -1576,8 +1567,8 @@ Ext.define('CustomApp', {
             {text:'50% Accepted Point', dataIndex:'health_half_accepted_ratio',renderer:render_cell,listeners: column_listeners},
             {text:'Last Day Completion Ratio',dataIndex:'health_end_completion_ratio',renderer:render_cell,listeners: column_listeners},
             {text:'Last Day Acceptance Ratio',dataIndex:'health_end_acceptance_ratio',renderer:render_cell,listeners: column_listeners},
-            {text:'Churn',dataIndex:'health_churn',renderer:render_cell,listeners: column_listeners },
-            {text:'Churn Direction',dataIndex:'health_churn_direction',renderer:render_cell,listeners: column_listeners},
+            {text:'Scope Churn',dataIndex:'health_churn',renderer:render_cell,listeners: column_listeners },
+            {text:'Scope Churn Direction',dataIndex:'health_churn_direction',renderer:render_cell,listeners: column_listeners},
             {text:'Task Churn',dataIndex:'health_churn_task',renderer:render_cell,listeners: column_listeners}
             
         ];
