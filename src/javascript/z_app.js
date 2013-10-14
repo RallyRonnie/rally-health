@@ -2,6 +2,7 @@ Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
     use_saved_ranges: false,
+    skip_zero_for_estimation_ratio: true,
     logger: new Rally.technicalservices.logger(),
     items: [ 
         { xtype:'container',itemId:'selector_box', padding: 5, defaults: { padding: 5 }, layout: { type:'hbox'} }, 
@@ -34,7 +35,7 @@ Ext.define('CustomApp', {
                         }
                     });
                 } else {
-                    me.logger.log(this, "No APP ID, so preferences will not be saved");
+                    me.logger.log(this, "Preferences will not be saved");
                     this._definePageDisplay();
                 }
 
@@ -335,7 +336,7 @@ Ext.define('CustomApp', {
         this.logger.log(this,"_setArtifactHealth",iteration_name,project);
         var me = this;
         
-        var artifacts = []; // have to get both stories and defects
+        var candidate_artifacts = []; // have to get both stories and defects
         var filters = [
             {property:'Iteration.Name',value:iteration_name}
         ];
@@ -349,7 +350,7 @@ Ext.define('CustomApp', {
             fetch: fetch,
             listeners: {
                 load: function(store,records){
-                    artifacts = records;
+                    candidate_artifacts = records;
                     Ext.create('Rally.data.WsapiDataStore',{
                         model:'Defect',
                         autoLoad: true,
@@ -357,8 +358,18 @@ Ext.define('CustomApp', {
                         fetch: fetch,
                         listeners: {
                             load: function(store,records){
-                                artifacts = Ext.Array.push(artifacts,records);
-                                me.logger.log(this,project.get('Name'),artifacts.length);
+                                candidate_artifacts = Ext.Array.push(candidate_artifacts,records);
+                                if ( me.skip_zero_for_estimation_ratio ) {
+                                    var artifacts = [];
+                                    Ext.Array.each(candidate_artifacts, function(artifact){
+                                        if ( artifact.get('PlanEstimate') !== 0 ) {
+                                            artifacts.push(artifact);
+                                        }
+                                    });
+                                } else {
+                                    artifacts = candidate_artifacts;
+                                }
+                                
                                 project.setIterationArtifacts(artifacts);
                             }
                         }
